@@ -3,6 +3,7 @@ package rutracker
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
 	"testing"
 	"time"
@@ -29,7 +30,7 @@ func TestInvalidAuth(t *testing.T) {
 		UserAgent: "RacoonMediaServer",
 	})
 
-	torrents, err := session.Search("Матрица", "")
+	torrents, err := session.Search("Матрица")
 
 	if err == nil {
 		t.Error("Error must be raised")
@@ -57,14 +58,15 @@ func TestSuccessAuth(t *testing.T) {
 		UserAgent: "RacoonMediaServer",
 	})
 
-	torrents, err := session.Search("Матрица", "")
+	torrents, err := session.Search("Матрица")
 
 	e, _ := err.(types.Error)
 	if e.Code == types.CaptchaRequired {
-		torrents, err = session.Search("Матрица", waitCaptcha(e.Captcha, t))
+		session.SetCaptchaText(waitCaptcha(e.Captcha, t))
+		torrents, err = session.Search("Матрица")
 	}
 
-	if torrents == nil {
+	if torrents == nil || len(torrents) == 0 {
 		t.Error("Result must be not nil")
 	}
 
@@ -72,5 +74,10 @@ func TestSuccessAuth(t *testing.T) {
 		t.Errorf("Error must be nil: %+s", err.Error())
 	}
 
-	t.Logf("Torrents: %+v", torrents)
+	err = session.Download(torrents[0].DownloadLink, "test.torrent")
+	if err != nil {
+		t.Errorf("Download failed: %+s", err.Error())
+	}
+
+	os.Remove("test.torrent")
 }

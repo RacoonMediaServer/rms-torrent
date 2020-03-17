@@ -8,7 +8,7 @@ type SearchSession interface {
 	SetCaptchaText(captchaText string)
 
 	// Инициировать поиск. Если вернется types.CaptchaRequired - то надо распознать капчу
-	Search(text string, limit uint) ([]Torrent, error)
+	Search(text string) ([]Torrent, error)
 
 	// Скачать торрент-файл в указанную директорию
 	Download(link, destination string) error

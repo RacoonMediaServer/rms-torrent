@@ -40,7 +40,8 @@ message DownloadRequest {
 }
 
 message DownloadResponse {
-    bool downloadStarted = 1;
+	bool downloadStarted = 1;
+	string errorReason = 2;
 }
 
 

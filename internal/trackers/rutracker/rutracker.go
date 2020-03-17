@@ -1,12 +1,17 @@
 package rutracker
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
+	"io"
+	"net/http"
 	"net/url"
+	"os"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
 	"regexp"
+	"strconv"
 )
 
 type captchaInfo struct {
@@ -48,19 +53,15 @@ func (session *SearchSession) SetCaptchaText(captchaText string) {
 	session.captcha.Recognized = captchaText
 }
 
-func (session *SearchSession) Search(text string, limit uint) ([]types.Torrent, error) {
+func (session *SearchSession) Search(text string) ([]types.Torrent, error) {
 	if err := session.authorize(); err != nil {
 		return nil, err
 	}
 
-	children := make([]*grabber, 0)
 	torrents := make([]types.Torrent, 0)
 
-	session.c.OnHTML("a.tLink", func(e *colly.HTMLElement) {
-		if len(children) < int(limit) {
-			grabber := spawnGrabber(session.c.Clone(), "https://rutracker.org/forum/"+e.Attr("href"))
-			children = append(children, grabber)
-		}
+	session.c.OnHTML("#tor-tbl > tbody > tr", func(e *colly.HTMLElement) {
+		torrents = append(torrents, extractTorrent(e))
 	})
 
 	if err := session.c.Visit("https://rutracker.org/forum/tracker.php?nm=" + url.QueryEscape(text)); err != nil {
@@ -68,26 +69,13 @@ func (session *SearchSession) Search(text string, limit uint) ([]types.Torrent, 
 	}
 
 	session.c.Wait()
-	var lastError error
-	for _, child := range children {
-		torrent, err := child.Wait()
-		if err == nil {
-			torrents = append(torrents, torrent)
-		} else {
-			lastError = err
-		}
-	}
 
-	if len(torrents) == 0 && session.captcha.IsPresent {
+	if !session.authorized && session.captcha.IsPresent {
 		return nil, types.Error{
 			Underlying: nil,
 			Code:       types.CaptchaRequired,
 			Captcha:    session.captcha.Url,
 		}
-	}
-
-	if len(torrents) == 0 && lastError != nil {
-		return nil, lastError
 	}
 
 	if len(torrents) == 0 && !session.authorized {
@@ -98,7 +86,37 @@ func (session *SearchSession) Search(text string, limit uint) ([]types.Torrent, 
 }
 
 func (session *SearchSession) Download(link, destination string) error {
-	return nil
+	cookies := session.c.Cookies("https://rutracker.org/forum/tracker.php")
+	fmt.Printf("%+v\n", cookies)
+
+	decoded, err := base64.StdEncoding.DecodeString(link)
+	if err != nil {
+		return types.RaiseError(types.NetworkProblem, err)
+	}
+
+	url := "https://rutracker.org/forum/" + string(decoded)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return types.RaiseError(types.NetworkProblem, err)
+	}
+	for _, cookie := range cookies {
+		request.AddCookie(cookie)
+	}
+
+	response, err := (&http.Client{}).Do(request)
+	if err != nil {
+		return types.RaiseError(types.NetworkProblem, err)
+	}
+	defer response.Body.Close()
+
+	file, err := os.Create(destination)
+	if err != nil {
+		return types.RaiseError(types.StorageProblem, err)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, response.Body)
+	return types.RaiseError(types.StorageProblem, err)
 }
 
 func (session *SearchSession) authorize() error {
@@ -159,4 +177,23 @@ func (session *SearchSession) extractCaptcha(data []byte) {
 	}
 
 	fmt.Printf("%+v\n", session.captcha)
+}
+
+func extractTorrent(e *colly.HTMLElement) types.Torrent {
+	torrent := types.Torrent{}
+	torrent.Title = e.DOM.Find(`a.tLink`).Text()
+
+	dl := e.DOM.Find(`a.tr-dl`)
+	link, _ := dl.Attr("href")
+	torrent.DownloadLink = base64.StdEncoding.EncodeToString([]byte(link))
+	torrent.Size = dl.Text()
+
+	seeds := e.DOM.Find(`b.seedmed`).Text()
+	torrent.Peers, _ = strconv.Atoi(seeds)
+
+	leechs := e.DOM.Find(`td.leechmed`).Text()
+	peers, _ := strconv.Atoi(leechs)
+	torrent.Peers += peers
+
+	return torrent
 }

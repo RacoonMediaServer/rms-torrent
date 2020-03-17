@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	uuid "github.com/satori/go.uuid"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/trackers"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
 	proto "racoondev.tk/gitea/racoon/rtorrent/proto"
+	"sort"
 	"sync"
 )
 
@@ -39,9 +41,6 @@ func putError(err error, out *proto.SearchResponse) {
 }
 
 func (service *TorrentService) getSession(id, user, password, tracker string) (types.SearchSession, error) {
-	service.mutex.Lock()
-	defer service.mutex.Unlock()
-
 	var err error
 	session, ok := service.sessions[id]
 	if !ok {
@@ -52,22 +51,17 @@ func (service *TorrentService) getSession(id, user, password, tracker string) (t
 				Password:  password,
 				UserAgent: "RacoonMediaServer",
 			})
+			service.sessions[id] = session
 		}
-	} else {
-		delete(service.sessions, id)
 	}
 
 	return session, err
 }
 
-func (service *TorrentService) putSession(id string, session types.SearchSession) {
+func (service *TorrentService) Search(ctx context.Context, in *proto.SearchRequest, out *proto.SearchResponse) error {
 	service.mutex.Lock()
 	defer service.mutex.Unlock()
 
-	service.sessions[id] = session
-}
-
-func (service *TorrentService) Search(ctx context.Context, in *proto.SearchRequest, out *proto.SearchResponse) error {
 	id := base64.StdEncoding.EncodeToString([]byte(in.Tracker+":"+in.Login+":"+in.Password))
 	session, err := service.getSession(id, in.Login, in.Password, in.Tracker)
 
@@ -76,17 +70,19 @@ func (service *TorrentService) Search(ctx context.Context, in *proto.SearchReque
 		return nil
 	}
 
-	defer service.putSession(id, session)
-
 	if in.Captcha != "" {
 		session.SetCaptchaText(in.Captcha)
 	}
 
-	torrents, err := session.Search(in.Text, 10)
+	torrents, err := session.Search(in.Text)
 	if err != nil {
 		putError(err, out)
 		return nil
 	}
+	
+	sort.Slice(torrents, func(i, j int) bool {
+		return torrents[i].Peers > torrents[j].Peers
+	})
 
 	out.Results = make([]*proto.Torrent, len(torrents))
 	for i, t := range torrents {
@@ -105,5 +101,23 @@ func (service *TorrentService) Search(ctx context.Context, in *proto.SearchReque
 }
 
 func (service *TorrentService) Download(ctx context.Context, in *proto.DownloadRequest, out *proto.DownloadResponse) error {
+	service.mutex.Lock()
+	defer service.mutex.Unlock()
+
+	out.DownloadStarted = false
+
+	session, ok := service.sessions[in.SessionID]
+	if !ok {
+		out.ErrorReason = "Unknown session"
+		return nil
+	}
+
+	if err := session.Download(in.TorrentLink, uuid.NewV4().String()+".torrent"); err != nil {
+		out.ErrorReason = err.Error()
+		return nil
+	}
+
+	out.DownloadStarted = true
+
 	return nil
 }

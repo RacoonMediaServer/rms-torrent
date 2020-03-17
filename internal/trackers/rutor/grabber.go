@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"github.com/gocolly/colly/v2"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
+	"regexp"
+	"strconv"
 )
 
 const (
@@ -21,15 +23,16 @@ type tableGrabber struct {
 	torrents []types.Torrent
 	state    int
 	counter  int
-	limit    uint
 	torrent  types.Torrent
+
+	peersParseExpr *regexp.Regexp
 }
 
-func newGrabber(limit uint) *tableGrabber {
+func newGrabber() *tableGrabber {
 	return &tableGrabber{
 		torrents: make([]types.Torrent, 0),
 		state:    columnSkip,
-		limit:    limit,
+		peersParseExpr: regexp.MustCompile(`\d+`),
 	}
 }
 
@@ -54,10 +57,7 @@ func (grabber *tableGrabber) HandleColumn(e *colly.HTMLElement) {
 		grabber.torrent.Size = e.Text
 
 	case columnPeers:
-		if uint(len(grabber.torrents)) < grabber.limit {
-			grabber.torrents = append(grabber.torrents, grabber.torrent)
-		}
-
+		grabber.handlePeersColumn(e)
 		grabber.state = columnDate
 		return
 	}
@@ -70,4 +70,17 @@ func (grabber *tableGrabber) handleTitleColumn(e *colly.HTMLElement) {
 	node := e.DOM.Find("a[href]")
 	link, _ := node.Attr("href")
 	grabber.torrent.DownloadLink = base64.StdEncoding.EncodeToString([]byte(link))
+}
+
+func (grabber *tableGrabber) handlePeersColumn(e *colly.HTMLElement) {
+	peers := grabber.peersParseExpr.FindAllString(e.Text, -1)
+	for _, peersCount := range peers {
+		count, err := strconv.Atoi(peersCount)
+		if err == nil {
+			grabber.torrent.Peers += count
+		}
+	}
+
+
+	grabber.torrents = append(grabber.torrents, grabber.torrent)
 }

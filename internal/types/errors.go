@@ -5,6 +5,7 @@ const (
 	NetworkProblem
 	CaptchaRequired
 	UnknownTracker
+	StorageProblem
 )
 
 type Error struct {
