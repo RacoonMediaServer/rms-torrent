@@ -6,16 +6,15 @@ import (
 	"github.com/gocolly/colly/v2/debug"
 	"net/url"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/utils"
 	"regexp"
 )
 
 type captchaInfo struct {
-	IsPresent bool
-	Url       string
-	Sid       string
-	Code      string
-	Decoded   string
+	IsPresent  bool
+	Url        string
+	Sid        string
+	Code       string
+	Recognized string
 }
 
 type SearchSession struct {
@@ -45,9 +44,11 @@ func (session *SearchSession) Setup(settings types.SessionSettings) {
 	session.captcha = captchaInfo{}
 }
 
-func (session *SearchSession) Search(text, captchaText string) ([]types.Torrent, error) {
-	session.captcha.Decoded = captchaText
+func (session *SearchSession) SetCaptchaText(captchaText string) {
+	session.captcha.Recognized = captchaText
+}
 
+func (session *SearchSession) Search(text string, limit uint) ([]types.Torrent, error) {
 	if err := session.authorize(); err != nil {
 		return nil, err
 	}
@@ -56,7 +57,10 @@ func (session *SearchSession) Search(text, captchaText string) ([]types.Torrent,
 	torrents := make([]types.Torrent, 0)
 
 	session.c.OnHTML("a.tLink", func(e *colly.HTMLElement) {
-		children = append(children, spawnGrabber(session.c.Clone(), "https://rutracker.org/forum/"+e.Attr("href")))
+		if len(children) < int(limit) {
+			grabber := spawnGrabber(session.c.Clone(), "https://rutracker.org/forum/"+e.Attr("href"))
+			children = append(children, grabber)
+		}
 	})
 
 	if err := session.c.Visit("https://rutracker.org/forum/tracker.php?nm=" + url.QueryEscape(text)); err != nil {
@@ -105,7 +109,6 @@ func (session *SearchSession) authorize() error {
 		})
 
 		session.c.OnResponse(func(response *colly.Response) {
-			utils.DumpPage("auth", response.Body)
 			session.extractCaptcha(response.Body)
 		})
 
@@ -116,7 +119,7 @@ func (session *SearchSession) authorize() error {
 				"login_password":     session.settings.Password,
 				"login":              "вход",
 				"cap_sid":            session.captcha.Sid,
-				session.captcha.Code: session.captcha.Decoded,
+				session.captcha.Code: session.captcha.Recognized,
 			})
 		} else {
 			err = session.c.Post("https://rutracker.org/forum/login.php", map[string]string{
@@ -142,6 +145,7 @@ func (session *SearchSession) extractCaptcha(data []byte) {
 	}
 
 	session.captcha.IsPresent = true
+	session.authorized = false
 	session.captcha.Url = matches[1]
 
 	matches = session.captchaCodeExpr.FindStringSubmatch(content)

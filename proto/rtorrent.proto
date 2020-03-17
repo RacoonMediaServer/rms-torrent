@@ -2,14 +2,45 @@ syntax = "proto3";
 
 service RacoonTorrent {
 	rpc Search(SearchRequest) returns (SearchResponse);
+	rpc Download(DownloadRequest) returns (DownloadResponse);
 }
 
 message SearchRequest {
 	string login = 1;
     string password = 2;
     string text = 3;
+    string captcha = 4;
+    string tracker = 5;
+}
+
+message Torrent {
+    string title = 1;
+    string link = 2;
+    string size = 3;
+    string quality = 4;
 }
 
 message SearchResponse {
-	string item = 4;
+	enum ErrorCode {
+	    OK = 0;
+	    CAPTCHA_REQUIRED = 1;
+	    ERROR = 3;
+	}
+
+    string sessionID = 1;
+	ErrorCode code = 2;
+	string errorReason = 3;
+	string captchaURL = 4;
+	repeated Torrent results = 5;
 }
+
+message DownloadRequest {
+    string sessionID = 1;
+    string torrentLink = 2;
+}
+
+message DownloadResponse {
+    bool downloadStarted = 1;
+}
+
+

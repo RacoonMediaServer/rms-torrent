@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	micro "github.com/micro/go-micro/v2"
-	"racoondev.tk/gitea/racoon/rtorrent/internal"
+	tservice "racoondev.tk/gitea/racoon/rtorrent/internal/service"
 	proto "racoondev.tk/gitea/racoon/rtorrent/proto"
 )
 
@@ -18,7 +18,7 @@ func main() {
 
 	service.Init()
 
-	proto.RegisterRacoonTorrentHandler(service.Server(), new(internal.TorrentService))
+	proto.RegisterRacoonTorrentHandler(service.Server(), tservice.NewService())
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err)

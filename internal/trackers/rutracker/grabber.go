@@ -1,6 +1,7 @@
 package rutracker
 
 import (
+	"encoding/base64"
 	"github.com/gocolly/colly/v2"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
 )
@@ -15,7 +16,7 @@ func spawnGrabber(c *colly.Collector, url string) *grabber {
 	grabber := grabber{c: c}
 
 	grabber.c.OnHTML("a.dl-link", func(e *colly.HTMLElement) {
-		grabber.torrent.DownloadLink = "https://rutracker.org/forum/" + e.Attr("href")
+		grabber.torrent.DownloadLink = base64.StdEncoding.EncodeToString([]byte(e.Attr("href")))
 	})
 
 	grabber.c.OnHTML("a.topic-title", func(e *colly.HTMLElement) {

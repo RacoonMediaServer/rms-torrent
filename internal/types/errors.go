@@ -4,6 +4,7 @@ const (
 	AuthFailed = iota
 	NetworkProblem
 	CaptchaRequired
+	UnknownTracker
 )
 
 type Error struct {
@@ -30,7 +31,9 @@ func (e Error) Error() string {
 	case CaptchaRequired:
 		message = "Captcha required"
 	default:
-		return e.Underlying.Error()
+		if e.Underlying != nil {
+			return e.Underlying.Error()
+		}
 	}
 
 	if e.Underlying == nil {
