@@ -36,7 +36,7 @@ func main() {
 	}
 
 	err := config.Load(
-		env.NewSource(env.WithStrippedPrefix("RTORRENT"))
+		env.NewSource(env.WithStrippedPrefix("RTORRENT")),
 	)
 
 	if err != nil {
