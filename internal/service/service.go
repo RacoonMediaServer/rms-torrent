@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"github.com/micro/go-micro/v2/logger"
 	uuid "github.com/satori/go.uuid"
+	"path"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/trackers"
 	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
 	proto "racoondev.tk/gitea/racoon/rtorrent/proto"
@@ -12,14 +14,95 @@ import (
 )
 
 type TorrentService struct {
-	sessions map[string]types.SearchSession
-	mutex sync.Mutex
+	sessions  map[string]types.SearchSession
+	directory string
+	mutex     sync.Mutex
 }
 
-func NewService() *TorrentService {
+func NewService(directory string) *TorrentService {
 	return &TorrentService{
-		sessions: make(map[string]types.SearchSession),
+		sessions:  make(map[string]types.SearchSession),
+		directory: directory,
 	}
+}
+
+func (service *TorrentService) ListTrackers(ctx context.Context, in *proto.ListTrackersRequest, out *proto.ListTrackersResponse) error {
+	logger.Debug("ListTrackers() request")
+	out.Trackers = trackers.ListTrackers()
+	return nil
+}
+
+func (service *TorrentService) Search(ctx context.Context, in *proto.SearchRequest, out *proto.SearchResponse) error {
+	logger.Debugf("Search('%+v') request", *in)
+
+	service.mutex.Lock()
+	defer service.mutex.Unlock()
+
+	id := base64.StdEncoding.EncodeToString([]byte(in.Tracker + ":" + in.Login + ":" + in.Password))
+	session, err := service.getSession(id, in.Login, in.Password, in.Tracker)
+
+	if err != nil {
+		putError(err, out)
+		return nil
+	}
+
+	if in.Captcha != "" {
+		session.SetCaptchaText(in.Captcha)
+	}
+
+	torrents, err := session.Search(in.Text)
+	if err != nil {
+		putError(err, out)
+		return nil
+	}
+
+	sort.Slice(torrents, func(i, j int) bool {
+		return torrents[i].Peers > torrents[j].Peers
+	})
+
+	out.Results = make([]*proto.Torrent, len(torrents))
+	for i, t := range torrents {
+		result := proto.Torrent{
+			Title:   t.Title,
+			Link:    t.DownloadLink,
+			Size:    t.Size,
+			Quality: "",
+		}
+		out.Results[i] = &result
+	}
+
+	out.SessionID = id
+
+	return nil
+}
+
+func (service *TorrentService) Download(ctx context.Context, in *proto.DownloadRequest, out *proto.DownloadResponse) error {
+	logger.Debugf("Download('%+v') request", *in)
+
+	service.mutex.Lock()
+	defer service.mutex.Unlock()
+
+	out.DownloadStarted = false
+
+	session, ok := service.sessions[in.SessionID]
+	if !ok {
+		logger.Errorf("Unknown session: %s", in.SessionID)
+		out.ErrorReason = "Unknown session"
+		return nil
+	}
+
+	file := path.Join(service.directory, uuid.NewV4().String()+".torrent")
+
+	if err := session.Download(in.TorrentLink, file); err != nil {
+		out.ErrorReason = err.Error()
+		return nil
+	}
+
+	logger.Infof("Torrent downloaded: %s", file)
+
+	out.DownloadStarted = true
+
+	return nil
 }
 
 func putError(err error, out *proto.SearchResponse) {
@@ -27,6 +110,7 @@ func putError(err error, out *proto.SearchResponse) {
 	if !ok {
 		out.Code = proto.SearchResponse_ERROR
 		out.ErrorReason = err.Error()
+		logger.Error(err)
 		return
 	}
 
@@ -56,68 +140,4 @@ func (service *TorrentService) getSession(id, user, password, tracker string) (t
 	}
 
 	return session, err
-}
-
-func (service *TorrentService) Search(ctx context.Context, in *proto.SearchRequest, out *proto.SearchResponse) error {
-	service.mutex.Lock()
-	defer service.mutex.Unlock()
-
-	id := base64.StdEncoding.EncodeToString([]byte(in.Tracker+":"+in.Login+":"+in.Password))
-	session, err := service.getSession(id, in.Login, in.Password, in.Tracker)
-
-	if err != nil {
-		putError(err, out)
-		return nil
-	}
-
-	if in.Captcha != "" {
-		session.SetCaptchaText(in.Captcha)
-	}
-
-	torrents, err := session.Search(in.Text)
-	if err != nil {
-		putError(err, out)
-		return nil
-	}
-	
-	sort.Slice(torrents, func(i, j int) bool {
-		return torrents[i].Peers > torrents[j].Peers
-	})
-
-	out.Results = make([]*proto.Torrent, len(torrents))
-	for i, t := range torrents {
-		result := proto.Torrent{
-			Title:                t.Title,
-			Link:                 t.DownloadLink,
-			Size:                 t.Size,
-			Quality:              "",
-		}
-		out.Results[i] = &result
-	}
-
-	out.SessionID = id
-
-	return nil
-}
-
-func (service *TorrentService) Download(ctx context.Context, in *proto.DownloadRequest, out *proto.DownloadResponse) error {
-	service.mutex.Lock()
-	defer service.mutex.Unlock()
-
-	out.DownloadStarted = false
-
-	session, ok := service.sessions[in.SessionID]
-	if !ok {
-		out.ErrorReason = "Unknown session"
-		return nil
-	}
-
-	if err := session.Download(in.TorrentLink, uuid.NewV4().String()+".torrent"); err != nil {
-		out.ErrorReason = err.Error()
-		return nil
-	}
-
-	out.DownloadStarted = true
-
-	return nil
 }

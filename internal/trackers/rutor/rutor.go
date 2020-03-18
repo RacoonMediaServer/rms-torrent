@@ -21,9 +21,12 @@ const rutorDomain = "new-rutor.org"
 func (session *SearchSession) Setup(settings types.SessionSettings) {
 	session.c = colly.NewCollector(
 		colly.UserAgent(settings.UserAgent),
-		colly.Debugger(&debug.LogDebugger{}),
 		colly.AllowURLRevisit(),
 	)
+
+	if settings.Debug {
+		session.c.SetDebugger(&debug.LogDebugger{})
+	}
 }
 
 func (session *SearchSession) SetCaptchaText(captchaText string) {

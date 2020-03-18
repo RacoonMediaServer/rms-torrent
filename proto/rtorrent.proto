@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 service RacoonTorrent {
+    rpc ListTrackers(ListTrackersRequest) returns (ListTrackersResponse);
 	rpc Search(SearchRequest) returns (SearchResponse);
 	rpc Download(DownloadRequest) returns (DownloadResponse);
 }
@@ -42,6 +43,20 @@ message DownloadRequest {
 message DownloadResponse {
 	bool downloadStarted = 1;
 	string errorReason = 2;
+}
+
+message ListTrackersRequest {
+
+}
+
+message TrackerInfo {
+    string id = 1;
+    string name = 2;
+    bool loginRequired = 3;
+}
+
+message ListTrackersResponse {
+    repeated TrackerInfo trackers = 1;
 }
 
 

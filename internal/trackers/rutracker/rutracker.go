@@ -38,9 +38,12 @@ func (session *SearchSession) Setup(settings types.SessionSettings) {
 	session.settings = settings
 	session.c = colly.NewCollector(
 		colly.UserAgent(settings.UserAgent),
-		colly.Debugger(&debug.LogDebugger{}),
 		colly.AllowURLRevisit(),
 	)
+
+	if settings.Debug {
+		session.c.SetDebugger(&debug.LogDebugger{})
+	}
 
 	session.captchaSidExpr = regexp.MustCompile(`<input[^>]*name="cap_sid"[^>]*value="([^"]+)"[^>]*>`)
 	session.captchaCodeExpr = regexp.MustCompile(`<input[^>]*name="(cap_code_[^"]+)"[^>]*value="[^"]*"[^>]*>`)

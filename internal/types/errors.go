@@ -1,5 +1,9 @@
 package types
 
+import (
+	"github.com/micro/go-micro/v2/logger"
+)
+
 const (
 	AuthFailed = iota
 	NetworkProblem
@@ -16,10 +20,18 @@ type Error struct {
 
 func RaiseError(code int, err error) error {
 	if err != nil {
-		return Error{Code: code, Underlying: err}
+		wrapped := Error{Code: code, Underlying: err}
+		logger.Error(wrapped)
+		return wrapped
 	}
 
 	return nil
+}
+
+func Raise(code int) error {
+	err := Error{Code: code}
+	logger.Error(err)
+	return err
 }
 
 func (e Error) Error() string {

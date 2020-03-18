@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/micro/cli/v2"
 	micro "github.com/micro/go-micro/v2"
+	"log"
 	"os"
 	proto "racoondev.tk/gitea/racoon/rtorrent/proto"
 )
@@ -15,6 +16,7 @@ func main() {
 	password := ""
 	tracker := ""
 	search := ""
+	download := false
 
 	service := micro.NewService(
 		micro.Name("rtorrent.client"),
@@ -51,11 +53,27 @@ func main() {
 				DefaultText: "",
 				Destination: &search,
 			},
+			&cli.BoolFlag{
+				Name:        "download",
+				Usage:       "download all torrents",
+				Value:       false,
+				DefaultText: "",
+				Destination: &download,
+			},
 		),
 	)
 	service.Init()
 
 	client := proto.NewRacoonTorrentService("rtorrent", service.Client())
+
+	trackers, err := client.ListTrackers(context.TODO(), &proto.ListTrackersRequest{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, tracker := range trackers.Trackers {
+		log.Printf("Tracker discovered: [%s] - '%s'", tracker.Id, tracker.Name)
+	}
 
 	request := proto.SearchRequest{
 		Login:    user,
@@ -84,4 +102,23 @@ func main() {
 
 	// Print response
 	fmt.Println(response)
+
+	if response.Code == proto.SearchResponse_OK && download {
+		for _, torrent := range response.Results {
+			request := proto.DownloadRequest{
+				SessionID:            response.SessionID,
+				TorrentLink:          torrent.Link,
+			}
+			response, err := client.Download(context.TODO(), &request)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if !response.DownloadStarted {
+				log.Fatal(response.ErrorReason)
+			} else {
+				log.Printf("%s downloaded", torrent.Title)
+			}
+		}
+	}
 }

@@ -34,6 +34,7 @@ var _ server.Option
 // Client API for RacoonTorrent service
 
 type RacoonTorrentService interface {
+	ListTrackers(ctx context.Context, in *ListTrackersRequest, opts ...client.CallOption) (*ListTrackersResponse, error)
 	Search(ctx context.Context, in *SearchRequest, opts ...client.CallOption) (*SearchResponse, error)
 	Download(ctx context.Context, in *DownloadRequest, opts ...client.CallOption) (*DownloadResponse, error)
 }
@@ -48,6 +49,16 @@ func NewRacoonTorrentService(name string, c client.Client) RacoonTorrentService 
 		c:    c,
 		name: name,
 	}
+}
+
+func (c *racoonTorrentService) ListTrackers(ctx context.Context, in *ListTrackersRequest, opts ...client.CallOption) (*ListTrackersResponse, error) {
+	req := c.c.NewRequest(c.name, "RacoonTorrent.ListTrackers", in)
+	out := new(ListTrackersResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *racoonTorrentService) Search(ctx context.Context, in *SearchRequest, opts ...client.CallOption) (*SearchResponse, error) {
@@ -73,12 +84,14 @@ func (c *racoonTorrentService) Download(ctx context.Context, in *DownloadRequest
 // Server API for RacoonTorrent service
 
 type RacoonTorrentHandler interface {
+	ListTrackers(context.Context, *ListTrackersRequest, *ListTrackersResponse) error
 	Search(context.Context, *SearchRequest, *SearchResponse) error
 	Download(context.Context, *DownloadRequest, *DownloadResponse) error
 }
 
 func RegisterRacoonTorrentHandler(s server.Server, hdlr RacoonTorrentHandler, opts ...server.HandlerOption) error {
 	type racoonTorrent interface {
+		ListTrackers(ctx context.Context, in *ListTrackersRequest, out *ListTrackersResponse) error
 		Search(ctx context.Context, in *SearchRequest, out *SearchResponse) error
 		Download(ctx context.Context, in *DownloadRequest, out *DownloadResponse) error
 	}
@@ -91,6 +104,10 @@ func RegisterRacoonTorrentHandler(s server.Server, hdlr RacoonTorrentHandler, op
 
 type racoonTorrentHandler struct {
 	RacoonTorrentHandler
+}
+
+func (h *racoonTorrentHandler) ListTrackers(ctx context.Context, in *ListTrackersRequest, out *ListTrackersResponse) error {
+	return h.RacoonTorrentHandler.ListTrackers(ctx, in, out)
 }
 
 func (h *racoonTorrentHandler) Search(ctx context.Context, in *SearchRequest, out *SearchResponse) error {
