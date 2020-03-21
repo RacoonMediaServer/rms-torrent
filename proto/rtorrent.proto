@@ -18,7 +18,7 @@ message Torrent {
     string title = 1;
     string link = 2;
     string size = 3;
-    string quality = 4;
+    int32 peers = 4;
 }
 
 message SearchResponse {

@@ -63,10 +63,10 @@ func (service *TorrentService) Search(ctx context.Context, in *proto.SearchReque
 	out.Results = make([]*proto.Torrent, len(torrents))
 	for i, t := range torrents {
 		result := proto.Torrent{
-			Title:   t.Title,
-			Link:    t.DownloadLink,
-			Size:    t.Size,
-			Quality: "",
+			Title: t.Title,
+			Link:  t.DownloadLink,
+			Size:  t.Size,
+			Peers: int32(t.Peers),
 		}
 		out.Results[i] = &result
 	}
