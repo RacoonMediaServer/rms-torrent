@@ -4,7 +4,10 @@ import (
 	"github.com/micro/cli/v2"
 	micro "github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/logger"
+	"os"
 	"racoondev.tk/gitea/racoon/rms-shared/pkg/configuration"
+	"racoondev.tk/gitea/racoon/rms-shared/pkg/db"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/accounts"
 	tservice "racoondev.tk/gitea/racoon/rms-torrent/internal/service"
 	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 )
@@ -46,6 +49,16 @@ func main() {
 
 	if useDebug {
 		logger.Init(logger.WithLevel(logger.DebugLevel))
+	}
+
+	database, err := db.Connect(config.Database)
+	if err != nil {
+		logger.Fatal(err)
+		os.Exit(1)
+	}
+
+	if err := accounts.Load(database); err != nil {
+		logger.Errorf("Load torrent accounts failed: %+v", err)
 	}
 
 	proto.RegisterRacoonTorrentHandler(service.Server(), tservice.NewService(config.Directory))

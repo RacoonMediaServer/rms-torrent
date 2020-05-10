@@ -18,5 +18,5 @@ require (
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
-	racoondev.tk/gitea/racoon/rms-shared v0.0.2-0.20200510180050-557e38df344e
+	racoondev.tk/gitea/racoon/rms-shared v0.0.2-0.20200510185134-5b53f7e231ed
 )
