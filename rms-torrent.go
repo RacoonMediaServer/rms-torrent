@@ -61,9 +61,10 @@ func main() {
 		logger.Errorf("Load torrent accounts failed: %+v", err)
 	}
 
-	proto.RegisterRacoonTorrentHandler(service.Server(), tservice.NewService(config.Directory))
+	proto.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(database,config.Directory))
 
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)
+		os.Exit(2)
 	}
 }

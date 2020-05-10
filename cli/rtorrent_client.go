@@ -12,31 +12,13 @@ import (
 )
 
 func main() {
-	user := ""
-	password := ""
 	tracker := ""
 	search := ""
 	download := false
 
 	service := micro.NewService(
-		micro.Name("rtorrent.client"),
+		micro.Name("rms-torrent.client"),
 		micro.Flags(
-			&cli.StringFlag{
-				Name:        "user",
-				Usage:       "user for login",
-				Required:    false,
-				Value:       "",
-				DefaultText: "",
-				Destination: &user,
-			},
-			&cli.StringFlag{
-				Name:        "password",
-				Usage:       "password for login",
-				Required:    false,
-				Value:       "",
-				DefaultText: "",
-				Destination: &password,
-			},
 			&cli.StringFlag{
 				Name:        "tracker",
 				Usage:       "site for search",
@@ -64,7 +46,7 @@ func main() {
 	)
 	service.Init()
 
-	client := proto.NewRacoonTorrentService("rtorrent", service.Client())
+	client := proto.NewRmsTorrentService("rms-torrent", service.Client())
 
 	trackers, err := client.ListTrackers(context.TODO(), &proto.ListTrackersRequest{})
 	if err != nil {
@@ -76,8 +58,6 @@ func main() {
 	}
 
 	request := proto.SearchRequest{
-		Login:    user,
-		Password: password,
 		Text:     search,
 		Tracker:  tracker,
 	}

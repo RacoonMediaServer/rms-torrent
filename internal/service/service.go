@@ -3,9 +3,12 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/micro/go-micro/v2/logger"
 	uuid "github.com/satori/go.uuid"
 	"path"
+	"racoondev.tk/gitea/racoon/rms-shared/pkg/db"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/accounts"
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers"
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
@@ -15,13 +18,15 @@ import (
 
 type TorrentService struct {
 	sessions  map[string]types.SearchSession
+	database  *db.Database
 	directory string
 	mutex     sync.Mutex
 }
 
-func NewService(directory string) *TorrentService {
+func NewService(database *db.Database, directory string) *TorrentService {
 	return &TorrentService{
 		sessions:  make(map[string]types.SearchSession),
+		database:  database,
 		directory: directory,
 	}
 }
@@ -35,11 +40,13 @@ func (service *TorrentService) ListTrackers(ctx context.Context, in *proto.ListT
 func (service *TorrentService) Search(ctx context.Context, in *proto.SearchRequest, out *proto.SearchResponse) error {
 	logger.Debugf("Search('%+v') request", *in)
 
+	login, password := accounts.Get(in.Tracker)
+
 	service.mutex.Lock()
 	defer service.mutex.Unlock()
 
-	id := base64.StdEncoding.EncodeToString([]byte(in.Tracker + ":" + in.Login + ":" + in.Password))
-	session, err := service.getSession(id, in.Login, in.Password, in.Tracker)
+	id := base64.StdEncoding.EncodeToString([]byte(in.Tracker + ":" + login + ":" + password))
+	session, err := service.getSession(id, login, password, in.Tracker)
 
 	if err != nil {
 		putError(err, out)
@@ -140,4 +147,11 @@ func (service *TorrentService) getSession(id, user, password, tracker string) (t
 	}
 
 	return session, err
+}
+
+func (service *TorrentService) RefreshSettings(ctx context.Context, in *empty.Empty, out *empty.Empty) error {
+	if err := accounts.Load(service.database); err != nil {
+		logger.Errorf("Update torrent accounts failed: %+v", err)
+	}
+	return nil
 }

@@ -27,3 +27,20 @@ func Load(database *db.Database) error {
 	}
 	return nil
 }
+
+func Get(trackerID string) (login string, password string) {
+	cache.mutex.Lock()
+	defer cache.mutex.Unlock()
+
+	if cache.accounts == nil {
+		return
+	}
+
+	account, ok := cache.accounts[trackerID]
+	if ok {
+		login = account.User
+		password = account.Password
+	}
+
+	return
+}
