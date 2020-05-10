@@ -2,7 +2,7 @@ package rutor
 
 import (
 	"os"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"testing"
 )
 

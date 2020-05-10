@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"testing"
 	"time"
 )

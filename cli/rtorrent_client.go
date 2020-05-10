@@ -8,7 +8,7 @@ import (
 	micro "github.com/micro/go-micro/v2"
 	"log"
 	"os"
-	proto "racoondev.tk/gitea/racoon/rtorrent/proto"
+	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 )
 
 func main() {

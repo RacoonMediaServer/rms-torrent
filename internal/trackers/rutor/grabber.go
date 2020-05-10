@@ -3,7 +3,7 @@ package rutor
 import (
 	"encoding/base64"
 	"github.com/gocolly/colly/v2"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"regexp"
 	"strconv"
 )

@@ -6,9 +6,9 @@ import (
 	"github.com/micro/go-micro/v2/logger"
 	uuid "github.com/satori/go.uuid"
 	"path"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/trackers"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
-	proto "racoondev.tk/gitea/racoon/rtorrent/proto"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
+	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 	"sort"
 	"sync"
 )

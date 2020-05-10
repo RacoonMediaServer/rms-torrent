@@ -1,10 +1,10 @@
 package trackers
 
 import (
-	"racoondev.tk/gitea/racoon/rtorrent/internal/trackers/rutor"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/trackers/rutracker"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
-	proto "racoondev.tk/gitea/racoon/rtorrent/proto"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers/rutor"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers/rutracker"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
+	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 )
 
 type tracker struct {

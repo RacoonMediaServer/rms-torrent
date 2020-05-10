@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"racoondev.tk/gitea/racoon/rtorrent/internal/types"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"regexp"
 	"strconv"
 )
