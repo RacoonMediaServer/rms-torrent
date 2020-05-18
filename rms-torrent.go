@@ -12,7 +12,7 @@ import (
 	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 )
 
-const version = "0.0.3"
+const version = "0.0.4"
 
 type Configuration struct {
 	Database  configuration.Database
