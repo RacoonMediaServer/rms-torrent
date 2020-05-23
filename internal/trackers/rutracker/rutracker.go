@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
+	"github.com/micro/go-micro/v2/logger"
 	"io"
 	"net/http"
 	"net/url"
@@ -40,6 +41,12 @@ func (session *SearchSession) Setup(settings types.SessionSettings) {
 		colly.UserAgent(settings.UserAgent),
 		colly.AllowURLRevisit(),
 	)
+
+	if settings.ProxyURL != "" {
+		if err := session.c.SetProxy(settings.ProxyURL); err != nil {
+			logger.Errorf("set proxy failed: %s", err.Error())
+		}
+	}
 
 	if settings.Debug {
 		session.c.SetDebugger(&debug.LogDebugger{})

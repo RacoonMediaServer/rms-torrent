@@ -5,23 +5,17 @@ import (
 	micro "github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/logger"
 	"os"
-	"racoondev.tk/gitea/racoon/rms-shared/pkg/configuration"
 	"racoondev.tk/gitea/racoon/rms-shared/pkg/db"
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/accounts"
 	tservice "racoondev.tk/gitea/racoon/rms-torrent/internal/service"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/utils"
 	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 )
 
-const version = "0.0.4"
-
-type Configuration struct {
-	Database  configuration.Database
-	Directory string
-}
+const version = "0.0.5"
 
 func main() {
 	useDebug := false
-	config := Configuration{}
 
 	service := micro.NewService(
 		micro.Name("rms-torrent"),
@@ -43,7 +37,7 @@ func main() {
 			if context.IsSet("config") {
 				configFile = context.String("config")
 			}
-			return configuration.LoadConfiguration(configFile, &config)
+			return utils.LoadConfig(configFile)
 		}),
 	)
 
@@ -51,7 +45,7 @@ func main() {
 		logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
-	database, err := db.Connect(config.Database)
+	database, err := db.Connect(utils.Config().Database)
 	if err != nil {
 		logger.Fatal(err)
 		os.Exit(1)
@@ -61,7 +55,7 @@ func main() {
 		logger.Errorf("Load torrent accounts failed: %+v", err)
 	}
 
-	proto.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(database,config.Directory))
+	proto.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(database))
 
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)
