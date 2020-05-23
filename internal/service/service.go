@@ -11,6 +11,7 @@ import (
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/accounts"
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers"
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
+	"racoondev.tk/gitea/racoon/rms-torrent/internal/utils"
 	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 	"sort"
 	"sync"
@@ -19,15 +20,13 @@ import (
 type TorrentService struct {
 	sessions  map[string]types.SearchSession
 	database  *db.Database
-	directory string
 	mutex     sync.Mutex
 }
 
-func NewService(database *db.Database, directory string) *TorrentService {
+func NewService(database *db.Database) *TorrentService {
 	return &TorrentService{
 		sessions:  make(map[string]types.SearchSession),
 		database:  database,
-		directory: directory,
 	}
 }
 
@@ -98,7 +97,7 @@ func (service *TorrentService) Download(ctx context.Context, in *proto.DownloadR
 		return nil
 	}
 
-	file := path.Join(service.directory, uuid.NewV4().String()+".torrent")
+	file := path.Join(utils.Config().Directory, uuid.NewV4().String()+".torrent")
 
 	if err := session.Download(in.TorrentLink, file); err != nil {
 		out.ErrorReason = err.Error()
@@ -141,6 +140,7 @@ func (service *TorrentService) getSession(id, user, password, tracker string) (t
 				User:      user,
 				Password:  password,
 				UserAgent: "RacoonMediaServer",
+				ProxyURL: utils.GetProxyURL(),
 			})
 			service.sessions[id] = session
 		}
