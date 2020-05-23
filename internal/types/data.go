@@ -5,6 +5,7 @@ type SessionSettings struct {
 	Password  string
 	UserAgent string
 	Debug     bool
+	ProxyURL  string
 }
 
 type Torrent struct {

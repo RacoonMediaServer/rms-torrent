@@ -5,5 +5,10 @@
     "user": "rms",
     "password": "",
     "database": "rms"
-  }
+  },
+  "proxy" : {
+    "enabled": false,
+    "url": ""
+  },
+  "directory": "/tmp"
 }
