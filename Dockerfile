@@ -19,6 +19,4 @@ RUN mkdir /app
 WORKDIR /app
 COPY --from=builder /go/src/racoondev.tk/gitea/racoon/rms-torrent .
 
-EXPOSE 8080/tcp
-
 CMD ["./rms-torrent"]
