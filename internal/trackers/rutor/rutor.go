@@ -6,8 +6,8 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	"github.com/micro/go-micro/v2/logger"
+	"github.com/parnurzeal/gorequest"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
@@ -15,6 +15,7 @@ import (
 
 type SearchSession struct {
 	c *colly.Collector
+	r *gorequest.SuperAgent
 }
 
 const rutorDomain = "new-rutor.org"
@@ -25,10 +26,14 @@ func (session *SearchSession) Setup(settings types.SessionSettings) {
 		colly.AllowURLRevisit(),
 	)
 
+	session.r = gorequest.New()
+
 	if settings.ProxyURL != "" {
 		if err := session.c.SetProxy(settings.ProxyURL); err != nil {
 			logger.Errorf("set proxy failed: %s", err.Error())
 		}
+
+		session.r = session.r.Proxy(settings.ProxyURL)
 	}
 
 	if settings.Debug {
@@ -66,9 +71,10 @@ func (session *SearchSession) Download(link, destination string) error {
 
 	url := "http://" + rutorDomain + string(decoded)
 
-	response, err := http.Get(url)
-	if err != nil {
-		return types.RaiseError(types.NetworkProblem, err)
+	response, _, errors := session.r.Clone().Get(url).End()
+
+	if errors != nil && len(errors) >= 0 {
+		return types.RaiseError(types.NetworkProblem, errors[0])
 	}
 	defer response.Body.Close()
 
