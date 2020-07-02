@@ -6,8 +6,8 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	"github.com/micro/go-micro/v2/logger"
+	"github.com/parnurzeal/gorequest"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
@@ -25,6 +25,7 @@ type captchaInfo struct {
 
 type SearchSession struct {
 	c          *colly.Collector
+	r *gorequest.SuperAgent
 	settings   types.SessionSettings
 	authorized bool
 
@@ -42,10 +43,14 @@ func (session *SearchSession) Setup(settings types.SessionSettings) {
 		colly.AllowURLRevisit(),
 	)
 
+	session.r = gorequest.New()
+
 	if settings.ProxyURL != "" {
 		if err := session.c.SetProxy(settings.ProxyURL); err != nil {
 			logger.Errorf("set proxy failed: %s", err.Error())
 		}
+
+		session.r = session.r.Proxy(settings.ProxyURL)
 	}
 
 	if settings.Debug {
@@ -97,7 +102,6 @@ func (session *SearchSession) Search(text string) ([]types.Torrent, error) {
 
 func (session *SearchSession) Download(link, destination string) error {
 	cookies := session.c.Cookies("https://rutracker.org/forum/tracker.php")
-	fmt.Printf("%+v\n", cookies)
 
 	decoded, err := base64.StdEncoding.DecodeString(link)
 	if err != nil {
@@ -105,17 +109,14 @@ func (session *SearchSession) Download(link, destination string) error {
 	}
 
 	url := "https://rutracker.org/forum/" + string(decoded)
-	request, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return types.RaiseError(types.NetworkProblem, err)
-	}
+	request := session.r.Clone()
 	for _, cookie := range cookies {
-		request.AddCookie(cookie)
+		request = request.AddCookie(cookie)
 	}
 
-	response, err := (&http.Client{}).Do(request)
-	if err != nil {
-		return types.RaiseError(types.NetworkProblem, err)
+	response, _, errors := request.Get(url).End()
+	if errors != nil {
+		return types.RaiseError(types.NetworkProblem, errors[0])
 	}
 	defer response.Body.Close()
 
