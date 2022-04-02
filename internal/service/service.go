@@ -3,30 +3,30 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/accounts"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
+	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/micro/go-micro/v2/logger"
 	uuid "github.com/satori/go.uuid"
 	"path"
-	"racoondev.tk/gitea/racoon/rms-shared/pkg/db"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/accounts"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/utils"
-	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 	"sort"
 	"sync"
 )
 
 type TorrentService struct {
-	sessions  map[string]types.SearchSession
-	database  *db.Database
-	mutex     sync.Mutex
+	sessions map[string]types.SearchSession
+	database *db.Database
+	mutex    sync.Mutex
 }
 
 func NewService(database *db.Database) *TorrentService {
 	return &TorrentService{
-		sessions:  make(map[string]types.SearchSession),
-		database:  database,
+		sessions: make(map[string]types.SearchSession),
+		database: database,
 	}
 }
 
@@ -140,7 +140,7 @@ func (service *TorrentService) getSession(id, user, password, tracker string) (t
 				User:      user,
 				Password:  password,
 				UserAgent: "RacoonMediaServer",
-				ProxyURL: utils.GetProxyURL(),
+				ProxyURL:  utils.GetProxyURL(),
 			})
 			service.sessions[id] = session
 		}

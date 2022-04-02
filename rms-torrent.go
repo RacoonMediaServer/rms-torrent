@@ -1,18 +1,18 @@
 package main
 
 import (
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/accounts"
+	tservice "git.rms.local/RacoonMediaServer/rms-torrent/internal/service"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
+	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
 	"github.com/micro/cli/v2"
 	micro "github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/logger"
 	"os"
-	"racoondev.tk/gitea/racoon/rms-shared/pkg/db"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/accounts"
-	tservice "racoondev.tk/gitea/racoon/rms-torrent/internal/service"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/utils"
-	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 )
 
-const version = "0.0.6"
+const version = "0.0.7"
 
 func main() {
 	useDebug := false

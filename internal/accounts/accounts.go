@@ -1,8 +1,8 @@
 package accounts
 
 import (
-	"racoondev.tk/gitea/racoon/rms-shared/pkg/db"
-	"racoondev.tk/gitea/racoon/rms-shared/pkg/settings"
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/settings"
 	"sync"
 )
 

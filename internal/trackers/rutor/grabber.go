@@ -2,8 +2,8 @@ package rutor
 
 import (
 	"encoding/base64"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"github.com/gocolly/colly/v2"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"regexp"
 	"strconv"
 )
@@ -30,8 +30,8 @@ type tableGrabber struct {
 
 func newGrabber() *tableGrabber {
 	return &tableGrabber{
-		torrents: make([]types.Torrent, 0),
-		state:    columnSkip,
+		torrents:       make([]types.Torrent, 0),
+		state:          columnSkip,
 		peersParseExpr: regexp.MustCompile(`\d+`),
 	}
 }
@@ -80,7 +80,6 @@ func (grabber *tableGrabber) handlePeersColumn(e *colly.HTMLElement) {
 			grabber.torrent.Peers += count
 		}
 	}
-
 
 	grabber.torrents = append(grabber.torrents, grabber.torrent)
 }
