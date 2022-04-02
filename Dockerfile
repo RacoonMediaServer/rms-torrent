@@ -1,6 +1,6 @@
 FROM golang as builder
 
-WORKDIR /go/src/racoondev.tk/gitea/racoon/rms-torrent
+WORKDIR /go/src/git.rms.local/RacoonMediaServer/rms-torrent
 
 ARG GIT_PASSWORD=$GIT_PASSWORD
 
@@ -17,6 +17,6 @@ RUN apk --no-cache add ca-certificates
 
 RUN mkdir /app
 WORKDIR /app
-COPY --from=builder /go/src/racoondev.tk/gitea/racoon/rms-torrent .
+COPY --from=builder /go/src/git.rms.local/RacoonMediaServer/rms-torrent .
 
 CMD ["./rms-torrent"]

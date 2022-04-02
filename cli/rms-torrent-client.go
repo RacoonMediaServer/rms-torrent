@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
 	"github.com/micro/cli/v2"
 	micro "github.com/micro/go-micro/v2"
 	"log"
 	"os"
-	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
 )
 
 func main() {
@@ -58,8 +58,8 @@ func main() {
 	}
 
 	request := proto.SearchRequest{
-		Text:     search,
-		Tracker:  tracker,
+		Text:    search,
+		Tracker: tracker,
 	}
 
 	response, err := client.Search(context.TODO(), &request)
@@ -86,8 +86,8 @@ func main() {
 	if response.Code == proto.SearchResponse_OK && download {
 		for _, torrent := range response.Results {
 			request := proto.DownloadRequest{
-				SessionID:            response.SessionID,
-				TorrentLink:          torrent.Link,
+				SessionID:   response.SessionID,
+				TorrentLink: torrent.Link,
 			}
 			response, err := client.Download(context.TODO(), &request)
 			if err != nil {

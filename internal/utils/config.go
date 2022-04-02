@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"racoondev.tk/gitea/racoon/rms-shared/pkg/configuration"
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/configuration"
 )
 
 type ProxySettings struct {
@@ -21,7 +21,7 @@ func Config() Configuration {
 	return config
 }
 
-func LoadConfig(filePath string) error  {
+func LoadConfig(filePath string) error {
 	return configuration.LoadConfiguration(filePath, &config)
 }
 

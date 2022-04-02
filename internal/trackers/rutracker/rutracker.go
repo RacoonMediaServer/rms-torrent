@@ -3,6 +3,7 @@ package rutracker
 import (
 	"encoding/base64"
 	"fmt"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	"github.com/micro/go-micro/v2/logger"
@@ -10,7 +11,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"regexp"
 	"strconv"
 )
@@ -25,7 +25,7 @@ type captchaInfo struct {
 
 type SearchSession struct {
 	c          *colly.Collector
-	r *gorequest.SuperAgent
+	r          *gorequest.SuperAgent
 	settings   types.SessionSettings
 	authorized bool
 

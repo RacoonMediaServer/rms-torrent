@@ -2,9 +2,9 @@ package rutracker
 
 import (
 	"fmt"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"io/ioutil"
 	"os"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"testing"
 	"time"
 )

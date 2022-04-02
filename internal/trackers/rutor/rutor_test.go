@@ -1,11 +1,10 @@
 package rutor
 
 import (
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"os"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
 	"testing"
 )
-
 
 func TestSearch(t *testing.T) {
 	session := SearchSession{}

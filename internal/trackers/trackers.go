@@ -1,10 +1,10 @@
 package trackers
 
 import (
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers/rutor"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/trackers/rutracker"
-	"racoondev.tk/gitea/racoon/rms-torrent/internal/types"
-	proto "racoondev.tk/gitea/racoon/rms-torrent/proto"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers/rutor"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers/rutracker"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
+	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
 )
 
 type tracker struct {
@@ -42,8 +42,8 @@ func NewSession(trackerID string) (types.SearchSession, error) {
 }
 
 func ListTrackers() []*proto.TrackerInfo {
-	list := make([]*proto.TrackerInfo,0)
-	for k,v := range trackers {
+	list := make([]*proto.TrackerInfo, 0)
+	for k, v := range trackers {
 		info := proto.TrackerInfo{
 			Id:            k,
 			Name:          v.Name,
