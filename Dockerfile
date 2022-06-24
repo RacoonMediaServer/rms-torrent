@@ -5,7 +5,6 @@ COPY . .
 RUN go env -w GOPRIVATE=git.rms.local \
   && go env -w GOINSECURE=git.rms.local  \
   && rm -rf .git \
-  && echo "192.168.1.133	git.rms.local" > /etc/hosts \
   && git config --global url."http://racoon:$GIT_PASSWORD@git.rms.local/".insteadOf "http://git.rms.local/"  \
   && go get
 RUN CGO_ENABLED=0 GOOS=linux go build -o rms-torrent -a -installsuffix cgo rms-torrent.go
