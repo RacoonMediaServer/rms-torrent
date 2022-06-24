@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
-	"github.com/micro/cli/v2"
-	micro "github.com/micro/go-micro/v2"
 	"log"
 	"os"
+
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
+	"github.com/urfave/cli/v2"
+	micro "go-micro.dev/v4"
 )
 
 func main() {
@@ -46,9 +47,9 @@ func main() {
 	)
 	service.Init()
 
-	client := proto.NewRmsTorrentService("rms-torrent", service.Client())
+	client := rms_torrent.NewRmsTorrentService("rms-torrent", service.Client())
 
-	trackers, err := client.ListTrackers(context.TODO(), &proto.ListTrackersRequest{})
+	trackers, err := client.ListTrackers(context.TODO(), &rms_torrent.ListTrackersRequest{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +58,7 @@ func main() {
 		log.Printf("Tracker discovered: [%s] - '%s'", tracker.Id, tracker.Name)
 	}
 
-	request := proto.SearchRequest{
+	request := rms_torrent.SearchRequest{
 		Text:    search,
 		Tracker: tracker,
 	}
@@ -68,7 +69,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if response.Code == proto.SearchResponse_CAPTCHA_REQUIRED {
+	if response.Code == rms_torrent.SearchResponse_CAPTCHA_REQUIRED {
 		fmt.Printf("Please enter code from captcha %s\n", response.CaptchaURL)
 		reader := bufio.NewReader(os.Stdin)
 		request.Captcha, _ = reader.ReadString('\n')
@@ -83,9 +84,9 @@ func main() {
 	// Print response
 	fmt.Println(response)
 
-	if response.Code == proto.SearchResponse_OK && download {
+	if response.Code == rms_torrent.SearchResponse_OK && download {
 		for _, torrent := range response.Results {
-			request := proto.DownloadRequest{
+			request := rms_torrent.DownloadRequest{
 				SessionID:   response.SessionID,
 				TorrentLink: torrent.Link,
 			}

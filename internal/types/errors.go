@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/micro/go-micro/v2/logger"
+	"go-micro.dev/v4/logger"
 )
 
 const (

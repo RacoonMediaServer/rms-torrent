@@ -1,10 +1,10 @@
 package trackers
 
 import (
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers/rutor"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers/rutracker"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
-	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
 )
 
 type tracker struct {
@@ -41,10 +41,10 @@ func NewSession(trackerID string) (types.SearchSession, error) {
 	return tracker.Factory(), nil
 }
 
-func ListTrackers() []*proto.TrackerInfo {
-	list := make([]*proto.TrackerInfo, 0)
+func ListTrackers() []*rms_torrent.TrackerInfo {
+	list := make([]*rms_torrent.TrackerInfo, 0)
 	for k, v := range trackers {
-		info := proto.TrackerInfo{
+		info := rms_torrent.TrackerInfo{
 			Id:            k,
 			Name:          v.Name,
 			LoginRequired: v.LoginRequired,

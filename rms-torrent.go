@@ -1,18 +1,19 @@
 package main
 
 import (
+	"os"
+
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/accounts"
 	tservice "git.rms.local/RacoonMediaServer/rms-torrent/internal/service"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
-	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
-	"github.com/micro/cli/v2"
-	micro "github.com/micro/go-micro/v2"
-	"github.com/micro/go-micro/v2/logger"
-	"os"
+	"github.com/urfave/cli/v2"
+	micro "go-micro.dev/v4"
+	"go-micro.dev/v4/logger"
 )
 
-const version = "0.0.7"
+const version = "1.0.0"
 
 func main() {
 	useDebug := false
@@ -55,7 +56,7 @@ func main() {
 		logger.Errorf("Load torrent accounts failed: %+v", err)
 	}
 
-	proto.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(database))
+	rms_torrent.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(database))
 
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)

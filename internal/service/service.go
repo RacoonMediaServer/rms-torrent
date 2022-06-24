@@ -3,18 +3,19 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"path"
+	"sort"
+	"sync"
+
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/accounts"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
-	proto "git.rms.local/RacoonMediaServer/rms-torrent/proto"
-	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/micro/go-micro/v2/logger"
 	uuid "github.com/satori/go.uuid"
-	"path"
-	"sort"
-	"sync"
+	"go-micro.dev/v4/logger"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type TorrentService struct {
@@ -30,13 +31,13 @@ func NewService(database *db.Database) *TorrentService {
 	}
 }
 
-func (service *TorrentService) ListTrackers(ctx context.Context, in *proto.ListTrackersRequest, out *proto.ListTrackersResponse) error {
+func (service *TorrentService) ListTrackers(ctx context.Context, in *rms_torrent.ListTrackersRequest, out *rms_torrent.ListTrackersResponse) error {
 	logger.Debug("ListTrackers() request")
 	out.Trackers = trackers.ListTrackers()
 	return nil
 }
 
-func (service *TorrentService) Search(ctx context.Context, in *proto.SearchRequest, out *proto.SearchResponse) error {
+func (service *TorrentService) Search(ctx context.Context, in *rms_torrent.SearchRequest, out *rms_torrent.SearchResponse) error {
 	logger.Debugf("Search('%+v') request", *in)
 
 	login, password := accounts.Get(in.Tracker)
@@ -66,9 +67,9 @@ func (service *TorrentService) Search(ctx context.Context, in *proto.SearchReque
 		return torrents[i].Peers > torrents[j].Peers
 	})
 
-	out.Results = make([]*proto.Torrent, len(torrents))
+	out.Results = make([]*rms_torrent.Torrent, len(torrents))
 	for i, t := range torrents {
-		result := proto.Torrent{
+		result := rms_torrent.Torrent{
 			Title: t.Title,
 			Link:  t.DownloadLink,
 			Size:  t.Size,
@@ -82,7 +83,7 @@ func (service *TorrentService) Search(ctx context.Context, in *proto.SearchReque
 	return nil
 }
 
-func (service *TorrentService) Download(ctx context.Context, in *proto.DownloadRequest, out *proto.DownloadResponse) error {
+func (service *TorrentService) Download(ctx context.Context, in *rms_torrent.DownloadRequest, out *rms_torrent.DownloadResponse) error {
 	logger.Debugf("Download('%+v') request", *in)
 
 	service.mutex.Lock()
@@ -111,20 +112,20 @@ func (service *TorrentService) Download(ctx context.Context, in *proto.DownloadR
 	return nil
 }
 
-func putError(err error, out *proto.SearchResponse) {
+func putError(err error, out *rms_torrent.SearchResponse) {
 	e, ok := err.(types.Error)
 	if !ok {
-		out.Code = proto.SearchResponse_ERROR
+		out.Code = rms_torrent.SearchResponse_ERROR
 		out.ErrorReason = err.Error()
 		logger.Error(err)
 		return
 	}
 
 	if e.Code == types.CaptchaRequired {
-		out.Code = proto.SearchResponse_CAPTCHA_REQUIRED
+		out.Code = rms_torrent.SearchResponse_CAPTCHA_REQUIRED
 		out.CaptchaURL = e.Captcha
 	} else {
-		out.Code = proto.SearchResponse_ERROR
+		out.Code = rms_torrent.SearchResponse_ERROR
 	}
 
 	out.ErrorReason = e.Error()
@@ -149,7 +150,7 @@ func (service *TorrentService) getSession(id, user, password, tracker string) (t
 	return session, err
 }
 
-func (service *TorrentService) RefreshSettings(ctx context.Context, in *empty.Empty, out *empty.Empty) error {
+func (service *TorrentService) RefreshSettings(ctx context.Context, in *emptypb.Empty, out *emptypb.Empty) error {
 	if err := accounts.Load(service.database); err != nil {
 		logger.Errorf("Update torrent accounts failed: %+v", err)
 	}
