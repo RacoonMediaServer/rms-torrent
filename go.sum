@@ -1,5 +1,7 @@
 git.rms.local/RacoonMediaServer/rms-shared v1.0.0 h1:4efGzpgIlwzV/joYb4vrktw219nlkrqBZYT9P1/FaFU=
 git.rms.local/RacoonMediaServer/rms-shared v1.0.0/go.mod h1:Q/cBdbMu0UGGDCmodZi1OH/glmkQtPDldc990+Z13bM=
+git.rms.local/RacoonMediaServer/rms-shared v1.0.5 h1:FyMhQujS6gLcu6tB7LQ6mt5urJSWAxfk5tEMfF70Ofg=
+git.rms.local/RacoonMediaServer/rms-shared v1.0.5/go.mod h1:Q/cBdbMu0UGGDCmodZi1OH/glmkQtPDldc990+Z13bM=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugXOPRXwdLnMv0=
 github.com/Microsoft/go-winio v0.5.0/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=

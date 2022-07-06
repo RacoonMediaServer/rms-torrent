@@ -3,7 +3,7 @@ module git.rms.local/RacoonMediaServer/rms-torrent
 go 1.18
 
 require (
-	git.rms.local/RacoonMediaServer/rms-shared v1.0.0
+	git.rms.local/RacoonMediaServer/rms-shared v1.0.5
 	github.com/gocolly/colly/v2 v2.0.1
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/satori/go.uuid v1.2.0
