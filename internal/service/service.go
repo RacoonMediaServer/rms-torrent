@@ -156,3 +156,15 @@ func (service *TorrentService) RefreshSettings(ctx context.Context, in *emptypb.
 	}
 	return nil
 }
+
+func (service *TorrentService) GetTorrentInfo(ctx context.Context, in *rms_torrent.GetTorrentInfoRequest, out *rms_torrent.TorrentInfo) error {
+	return nil
+}
+
+func (service *TorrentService) GetTorrents(ctx context.Context, in *rms_torrent.GetTorrentsRequest, out *rms_torrent.GetTorrentsResponse) error {
+	return nil
+}
+
+func (service *TorrentService) RemoveTorrent(ctx context.Context, in *rms_torrent.RemoveTorrentRequest, out *emptypb.Empty) error {
+	return nil
+}
