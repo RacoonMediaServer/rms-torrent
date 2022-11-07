@@ -1,16 +1,17 @@
 package rutor
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io"
+	"net/url"
+
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	"github.com/parnurzeal/gorequest"
 	"go-micro.dev/v4/logger"
-	"io"
-	"net/url"
-	"os"
 )
 
 type SearchSession struct {
@@ -63,10 +64,10 @@ func (session *SearchSession) Search(text string) ([]types.Torrent, error) {
 	return grabber.torrents, nil
 }
 
-func (session *SearchSession) Download(link, destination string) error {
+func (session *SearchSession) Download(link string) ([]byte, error) {
 	decoded, err := base64.StdEncoding.DecodeString(link)
 	if err != nil {
-		return types.RaiseError(types.NetworkProblem, err)
+		return nil, types.RaiseError(types.NetworkProblem, err)
 	}
 
 	url := "http://" + rutorDomain + string(decoded)
@@ -74,16 +75,11 @@ func (session *SearchSession) Download(link, destination string) error {
 	response, _, errors := session.r.Clone().Get(url).End()
 
 	if errors != nil && len(errors) >= 0 {
-		return types.RaiseError(types.NetworkProblem, errors[0])
+		return nil, types.RaiseError(types.NetworkProblem, errors[0])
 	}
 	defer response.Body.Close()
 
-	file, err := os.Create(destination)
-	if err != nil {
-		return types.RaiseError(types.StorageProblem, err)
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, response.Body)
-	return types.RaiseError(types.StorageProblem, err)
+	buf := &bytes.Buffer{}
+	_, err = io.Copy(buf, response.Body)
+	return buf.Bytes(), types.RaiseError(types.StorageProblem, err)
 }

@@ -10,5 +10,9 @@
     "enabled": false,
     "url": ""
   },
-  "directory": "/tmp"
+  "torrents": {
+    "directory": "/media",
+    "maxSpeed": 4096,
+    "db": "/db"
+  }
 }

@@ -1,9 +1,9 @@
 package rutor
 
 import (
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
-	"os"
 	"testing"
+
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 )
 
 func TestSearch(t *testing.T) {
@@ -12,7 +12,7 @@ func TestSearch(t *testing.T) {
 		UserAgent: "RacoonMediaServer",
 	})
 
-	torrents, err := session.Search("Матрица", 10)
+	torrents, err := session.Search("Матрица")
 
 	if torrents == nil {
 		t.Error("Result must be not nil")
@@ -31,9 +31,9 @@ func TestDownload(t *testing.T) {
 		UserAgent: "RacoonMediaServer",
 	})
 
-	torrents, err := session.Search("Матрица", 10)
+	torrents, err := session.Search("Матрица")
 
-	if torrents == nil || len(torrents) == 0 {
+	if len(torrents) == 0 {
 		t.Error("Result must be not empty")
 	}
 
@@ -41,9 +41,7 @@ func TestDownload(t *testing.T) {
 		t.Errorf("Error must be nil: %+s", err.Error())
 	}
 
-	if err := session.Download(torrents[0].DownloadLink, "test.torrent"); err != nil {
+	if _, err := session.Download(torrents[0].DownloadLink); err != nil {
 		t.Errorf("Download failed: %+s", err.Error())
 	}
-
-	os.Remove("test.torrent")
 }

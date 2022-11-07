@@ -9,10 +9,16 @@ type ProxySettings struct {
 	URL     string
 }
 
-type Configuration struct {
-	Database  configuration.Database
+type TorrentsSettings struct {
 	Directory string
-	Proxy     ProxySettings
+	MaxSpeed  uint
+	Db        string
+}
+
+type Configuration struct {
+	Database configuration.Database
+	Proxy    ProxySettings
+	Torrents TorrentsSettings
 }
 
 var config Configuration

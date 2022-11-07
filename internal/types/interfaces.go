@@ -11,5 +11,5 @@ type SearchSession interface {
 	Search(text string) ([]Torrent, error)
 
 	// Скачать торрент-файл в указанную директорию
-	Download(link, destination string) error
+	Download(link string) ([]byte, error)
 }

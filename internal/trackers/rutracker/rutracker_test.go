@@ -2,11 +2,11 @@ package rutracker
 
 import (
 	"fmt"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"io/ioutil"
-	"os"
 	"testing"
 	"time"
+
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 )
 
 const captchaWaitTime = 40 * time.Second
@@ -66,7 +66,7 @@ func TestSuccessAuth(t *testing.T) {
 		torrents, err = session.Search("Матрица")
 	}
 
-	if torrents == nil || len(torrents) == 0 {
+	if len(torrents) == 0 {
 		t.Error("Result must be not nil")
 	}
 
@@ -74,10 +74,8 @@ func TestSuccessAuth(t *testing.T) {
 		t.Errorf("Error must be nil: %+s", err.Error())
 	}
 
-	err = session.Download(torrents[0].DownloadLink, "test.torrent")
+	_, err = session.Download(torrents[0].DownloadLink)
 	if err != nil {
 		t.Errorf("Download failed: %+s", err.Error())
 	}
-
-	os.Remove("test.torrent")
 }

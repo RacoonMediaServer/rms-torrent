@@ -3,31 +3,33 @@ package service
 import (
 	"context"
 	"encoding/base64"
-	"path"
 	"sort"
 	"sync"
 
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/accounts"
+	"git.rms.local/RacoonMediaServer/rms-torrent/internal/torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
-	uuid "github.com/satori/go.uuid"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type TorrentService struct {
+	manager *torrent.Manager
+
 	sessions map[string]types.SearchSession
 	database *db.Database
 	mutex    sync.Mutex
 }
 
-func NewService(database *db.Database) *TorrentService {
+func NewService(database *db.Database, manager *torrent.Manager) *TorrentService {
 	return &TorrentService{
 		sessions: make(map[string]types.SearchSession),
 		database: database,
+		manager:  manager,
 	}
 }
 
@@ -98,14 +100,17 @@ func (service *TorrentService) Download(ctx context.Context, in *rms_torrent.Dow
 		return nil
 	}
 
-	file := path.Join(utils.Config().Directory, uuid.NewV4().String()+".torrent")
-
-	if err := session.Download(in.TorrentLink, file); err != nil {
+	file, err := session.Download(in.TorrentLink)
+	if err != nil {
 		out.ErrorReason = err.Error()
 		return nil
 	}
 
-	logger.Infof("Torrent downloaded: %s", file)
+	_, err = service.manager.Download(file)
+	if err != nil {
+		out.ErrorReason = err.Error()
+		return nil
+	}
 
 	out.DownloadStarted = true
 

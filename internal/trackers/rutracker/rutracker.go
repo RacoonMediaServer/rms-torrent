@@ -1,18 +1,19 @@
 package rutracker
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io"
+	"net/url"
+	"regexp"
+	"strconv"
+
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	"github.com/parnurzeal/gorequest"
 	"go-micro.dev/v4/logger"
-	"io"
-	"net/url"
-	"os"
-	"regexp"
-	"strconv"
 )
 
 type captchaInfo struct {
@@ -100,12 +101,12 @@ func (session *SearchSession) Search(text string) ([]types.Torrent, error) {
 	return torrents, nil
 }
 
-func (session *SearchSession) Download(link, destination string) error {
+func (session *SearchSession) Download(link string) ([]byte, error) {
 	cookies := session.c.Cookies("https://rutracker.org/forum/tracker.php")
 
 	decoded, err := base64.StdEncoding.DecodeString(link)
 	if err != nil {
-		return types.RaiseError(types.NetworkProblem, err)
+		return nil, types.RaiseError(types.NetworkProblem, err)
 	}
 
 	url := "https://rutracker.org/forum/" + string(decoded)
@@ -116,18 +117,14 @@ func (session *SearchSession) Download(link, destination string) error {
 
 	response, _, errors := request.Get(url).End()
 	if errors != nil {
-		return types.RaiseError(types.NetworkProblem, errors[0])
+		return nil, types.RaiseError(types.NetworkProblem, errors[0])
 	}
 	defer response.Body.Close()
 
-	file, err := os.Create(destination)
-	if err != nil {
-		return types.RaiseError(types.StorageProblem, err)
-	}
-	defer file.Close()
+	buf := &bytes.Buffer{}
 
-	_, err = io.Copy(file, response.Body)
-	return types.RaiseError(types.StorageProblem, err)
+	_, err = io.Copy(buf, response.Body)
+	return buf.Bytes(), types.RaiseError(types.StorageProblem, err)
 }
 
 func (session *SearchSession) authorize() error {
