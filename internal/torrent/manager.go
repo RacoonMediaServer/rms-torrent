@@ -39,7 +39,7 @@ func NewManager(settings utils.TorrentsSettings, pub micro.Event) (*Manager, err
 	conf := torrent.DefaultConfig
 	conf.DataDir = settings.Directory
 	conf.Database = settings.Db
-	conf.RPCEnabled = true
+	conf.RPCEnabled = false
 	conf.DataDirIncludesTorrentID = false
 	conf.SpeedLimitDownload = int64(settings.MaxSpeed)
 	conf.SpeedLimitUpload = int64(settings.MaxSpeed)
@@ -105,29 +105,32 @@ func (m *Manager) processTasks() {
 	for {
 		select {
 		case t := <-m.taskCh:
-			m.startTask(t)
+			if !m.startTask(t) {
+				return
+			}
 		case <-m.ctx.Done():
 			return
 		}
 	}
 }
 
-func (m *Manager) startTask(t *torrent.Torrent) {
+func (m *Manager) startTask(t *torrent.Torrent) bool {
 	if err := t.Start(); err != nil {
 		logger.Errorf("%s: start download failed: %s", tLogName(t), err)
-		return
+		return true
 	}
 	logger.Infof("%s: download started", tLogName(t))
 
 	for {
 		select {
 		case <-time.After(5 * time.Second):
-			logger.Infof("%s: progress %f %% (%s)", tLogName(t), (float64(t.Stats().Bytes.Downloaded)/float64(t.Stats().Bytes.Total))*100., t.Stats().Status.String())
+			stats := t.Stats()
+			logger.Infof("%s: progress %f %% (%s, peers %d)", tLogName(t), (float64(stats.Bytes.Downloaded)/float64(stats.Bytes.Total))*100., stats.Status.String(), stats.Peers.Outgoing)
 		case <-t.NotifyComplete():
 			m.completeTask(t)
-			return
+			return true
 		case <-m.ctx.Done():
-			return
+			return false
 		}
 	}
 }
@@ -150,4 +153,11 @@ func (m *Manager) publish(event *events.Notification) {
 	if err := m.pub.Publish(ctx, event); err != nil {
 		logger.Warnf("Publish notification failed: %s", err)
 	}
+}
+
+func (m *Manager) Stop() {
+	logger.Info("Stopping...")
+	m.cancel()
+	m.wg.Wait()
+	m.session.Close()
 }

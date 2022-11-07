@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/pubsub"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
@@ -66,6 +64,7 @@ func main() {
 
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)
-		os.Exit(2)
 	}
+
+	manager.Stop()
 }
