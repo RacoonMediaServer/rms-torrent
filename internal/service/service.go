@@ -102,12 +102,14 @@ func (service *TorrentService) Download(ctx context.Context, in *rms_torrent.Dow
 
 	file, err := session.Download(in.TorrentLink)
 	if err != nil {
+		logger.Errorf("Session download error: %s", err)
 		out.ErrorReason = err.Error()
 		return nil
 	}
 
 	_, err = service.manager.Download(file)
 	if err != nil {
+		logger.Errorf("Manager download error: %s", err)
 		out.ErrorReason = err.Error()
 		return nil
 	}

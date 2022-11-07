@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	"github.com/urfave/cli/v2"
 	micro "go-micro.dev/v4"
+	microcli "go-micro.dev/v4/client"
 )
 
 func main() {
@@ -63,7 +65,7 @@ func main() {
 		Tracker: tracker,
 	}
 
-	response, err := client.Search(context.Background(), &request)
+	response, err := client.Search(context.Background(), &request, microcli.WithRequestTimeout(30*time.Second))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -90,7 +92,7 @@ func main() {
 				SessionID:   response.SessionID,
 				TorrentLink: torrent.Link,
 			}
-			response, err := client.Download(context.Background(), &request)
+			response, err := client.Download(context.Background(), &request, microcli.WithRequestTimeout(30*time.Second))
 			if err != nil {
 				log.Fatal(err)
 			}
