@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	git.rms.local/RacoonMediaServer/rms-shared v1.2.3
+	github.com/cenkalti/rain v1.12.2
 	github.com/gocolly/colly/v2 v2.0.1
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/satori/go.uuid v1.2.0
@@ -22,17 +23,11 @@ require (
 	github.com/antchfx/xmlquery v1.2.3 // indirect
 	github.com/antchfx/xpath v1.1.4 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
-	github.com/boltdb/bolt v1.3.1 // indirect
-	github.com/br0xen/termbox-util v0.0.0-20200220160819-dc6d6950ba00 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
-	github.com/cenkalti/boltbrowser v0.0.0-20190327195521-ebed13c76690 // indirect
 	github.com/cenkalti/log v1.0.0 // indirect
-	github.com/cenkalti/rain v1.12.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/elazarl/goproxy v0.0.0-20220328115640-894aeddb713e // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/fatih/color v1.10.0 // indirect
-	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
@@ -45,21 +40,17 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/jackpal/bencode-go v1.0.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jinzhu/gorm v1.9.12 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jroimartin/gocui v0.5.0 // indirect
 	github.com/juju/ratelimit v1.0.2 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/lib/pq v1.3.0 // indirect
-	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -68,21 +59,18 @@ require (
 	github.com/multiformats/go-varint v0.0.6 // indirect
 	github.com/nictuku/dht v0.0.0-20201226073453-fd1c1dd3d66a // indirect
 	github.com/nictuku/nettools v0.0.0-20150117095333-8867a2107ad3 // indirect
-	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/powerman/rpc-codec v1.2.2 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/temoto/robotstxt v1.1.1 // indirect
-	github.com/urfave/cli v1.22.10 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/youtube/vitess v3.0.0-rc.3+incompatible // indirect
@@ -99,7 +87,6 @@ require (
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	lukechampine.com/blake3 v1.1.6 // indirect
 	moul.io/http2curl v1.0.0 // indirect
 )

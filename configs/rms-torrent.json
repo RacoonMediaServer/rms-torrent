@@ -12,7 +12,7 @@
   },
   "torrents": {
     "directory": "/media",
-    "maxSpeed": 1024,
+    "maxSpeed": 2048,
     "db": "/db"
   }
 }
