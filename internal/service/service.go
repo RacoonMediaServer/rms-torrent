@@ -165,13 +165,24 @@ func (service *TorrentService) RefreshSettings(ctx context.Context, in *emptypb.
 }
 
 func (service *TorrentService) GetTorrentInfo(ctx context.Context, in *rms_torrent.GetTorrentInfoRequest, out *rms_torrent.TorrentInfo) error {
+	result, err := service.manager.GetTorrentInfo(in.Id)
+	if err != nil {
+		logger.Warnf("Cannot get torrent info: %s", err)
+		return err
+	}
+	*out = result
 	return nil
 }
 
 func (service *TorrentService) GetTorrents(ctx context.Context, in *rms_torrent.GetTorrentsRequest, out *rms_torrent.GetTorrentsResponse) error {
+	out.Torrents = service.manager.GetTorrents(in.IncludeDoneTorrents)
 	return nil
 }
 
 func (service *TorrentService) RemoveTorrent(ctx context.Context, in *rms_torrent.RemoveTorrentRequest, out *emptypb.Empty) error {
+	if err := service.manager.RemoveTorrent(in.Id); err != nil {
+		logger.Warnf("cannot remove torrent: %s", err)
+		return err
+	}
 	return nil
 }

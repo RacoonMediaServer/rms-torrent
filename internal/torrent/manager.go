@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/events"
+	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
 	"github.com/cenkalti/rain/torrent"
 	uuid "github.com/satori/go.uuid"
@@ -99,60 +99,54 @@ func (m *Manager) Download(torrentFileContent []byte) (id string, err error) {
 	return
 }
 
-func (m *Manager) processTasks() {
-	defer m.wg.Done()
+func extractTorrentInfo(t *torrent.Torrent, out *rms_torrent.TorrentInfo) {
+	stats := t.Stats()
 
-	for {
-		select {
-		case t := <-m.taskCh:
-			if !m.startTask(t) {
-				return
-			}
-		case <-m.ctx.Done():
-			return
+	out.Id = t.ID()
+	out.Title = t.Name()
+	out.Progress = (float32(stats.Bytes.Downloaded) / float32(stats.Bytes.Total)) * 100.
+	if stats.ETA != nil {
+		out.Estimate = int64(*stats.ETA)
+	}
+	switch stats.Status {
+	case torrent.Stopped:
+		out.Status = rms_torrent.Status_Pending
+	case torrent.Downloading:
+		out.Status = rms_torrent.Status_Downloading
+	default:
+		out.Status = rms_torrent.Status_Done
+	}
+}
+
+func (m *Manager) GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error) {
+	t := m.session.GetTorrent(id)
+	if t == nil {
+		err = fmt.Errorf("torrent %s not found", id)
+		return
+	}
+
+	extractTorrentInfo(t, &result)
+	return
+}
+
+func (m *Manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo {
+	torrents := m.session.ListTorrents()
+	result := make([]*rms_torrent.TorrentInfo, 0, len(torrents))
+	for _, t := range torrents {
+		ti := rms_torrent.TorrentInfo{}
+		extractTorrentInfo(t, &ti)
+
+		if !includeDoneTorrents && ti.Status == rms_torrent.Status_Done {
+			continue
 		}
+		result = append(result, &ti)
 	}
+
+	return result
 }
 
-func (m *Manager) startTask(t *torrent.Torrent) bool {
-	if err := t.Start(); err != nil {
-		logger.Errorf("%s: start download failed: %s", tLogName(t), err)
-		return true
-	}
-	logger.Infof("%s: download started", tLogName(t))
-
-	for {
-		select {
-		case <-time.After(5 * time.Second):
-			stats := t.Stats()
-			logger.Infof("%s: progress %f %% (%s, peers %d)", tLogName(t), (float64(stats.Bytes.Downloaded)/float64(stats.Bytes.Total))*100., stats.Status.String(), stats.Peers.Outgoing)
-		case <-t.NotifyComplete():
-			m.completeTask(t)
-			return true
-		case <-m.ctx.Done():
-			return false
-		}
-	}
-}
-
-func (m *Manager) completeTask(t *torrent.Torrent) {
-	logger.Infof("%s: download complete", tLogName(t))
-	m.publish(&events.Notification{
-		Kind: events.Notification_DownloadComplete,
-		Detailed: map[string]string{
-			"id":   t.ID(),
-			"item": t.Name(),
-		},
-	})
-}
-
-func (m *Manager) publish(event *events.Notification) {
-	ctx, cancel := context.WithTimeout(m.ctx, publishTimeout)
-	defer cancel()
-
-	if err := m.pub.Publish(ctx, event); err != nil {
-		logger.Warnf("Publish notification failed: %s", err)
-	}
+func (m *Manager) RemoveTorrent(id string) error {
+	return m.session.RemoveTorrent(id)
 }
 
 func (m *Manager) Stop() {

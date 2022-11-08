@@ -6,6 +6,12 @@ git.rms.local/RacoonMediaServer/rms-shared v1.1.1 h1:JD2mTIUadLEK5xFCmUyZj/Nfhfo
 git.rms.local/RacoonMediaServer/rms-shared v1.1.1/go.mod h1:Q/cBdbMu0UGGDCmodZi1OH/glmkQtPDldc990+Z13bM=
 git.rms.local/RacoonMediaServer/rms-shared v1.2.0 h1:0dqxSN1qmtsMgQGBjuoxnqUn5vPYm4gd8RJ7yJ9XOvA=
 git.rms.local/RacoonMediaServer/rms-shared v1.2.0/go.mod h1:Q/cBdbMu0UGGDCmodZi1OH/glmkQtPDldc990+Z13bM=
+git.rms.local/RacoonMediaServer/rms-shared v1.2.1 h1:z/99fe5QCY3OUiUH5+BhHmaU8FUePVYA3LF1n0P2VYo=
+git.rms.local/RacoonMediaServer/rms-shared v1.2.1/go.mod h1:Q/cBdbMu0UGGDCmodZi1OH/glmkQtPDldc990+Z13bM=
+git.rms.local/RacoonMediaServer/rms-shared v1.2.2 h1:ceNC92BCGFNcxf9gwlYmR3zjZLhXggxigTANHEfREck=
+git.rms.local/RacoonMediaServer/rms-shared v1.2.2/go.mod h1:Q/cBdbMu0UGGDCmodZi1OH/glmkQtPDldc990+Z13bM=
+git.rms.local/RacoonMediaServer/rms-shared v1.2.3 h1:lG6quEkTQVWRxsoPCSvl3ngCpyncbVkbH8DhXctAuCU=
+git.rms.local/RacoonMediaServer/rms-shared v1.2.3/go.mod h1:Q/cBdbMu0UGGDCmodZi1OH/glmkQtPDldc990+Z13bM=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugXOPRXwdLnMv0=
