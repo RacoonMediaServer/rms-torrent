@@ -13,7 +13,7 @@ import (
 	"go-micro.dev/v4/logger"
 )
 
-const version = "1.0.2"
+const version = "1.1.0"
 
 func main() {
 	useDebug := false
