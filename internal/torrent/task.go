@@ -35,7 +35,7 @@ func (m *Manager) startTask(t *torrent.Torrent) bool {
 		select {
 		case <-time.After(5 * time.Second):
 			stats := t.Stats()
-			logger.Infof("%s: progress %f %% (%s, peers %d)", tLogName(t), (float64(stats.Bytes.Downloaded)/float64(stats.Bytes.Total))*100., stats.Status.String(), stats.Peers.Outgoing)
+			logger.Debugf("%s: progress %f %% (%s, peers %d)", tLogName(t), (float64(stats.Bytes.Downloaded)/float64(stats.Bytes.Total))*100., stats.Status.String(), stats.Peers.Outgoing)
 			if stats.Status == torrent.Stopped {
 				return true
 			}
