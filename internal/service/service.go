@@ -1,33 +1,36 @@
 package service
 
 import (
+	"bytes"
 	"context"
-	"encoding/base64"
-	"sort"
+	"fmt"
+	"git.rms.local/RacoonMediaServer/rms-media-discovery/pkg/client/client"
+	"git.rms.local/RacoonMediaServer/rms-media-discovery/pkg/client/client/torrents"
+	"github.com/go-openapi/strfmt"
 	"sync"
 
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/accounts"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/torrent"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/trackers"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/types"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	httptransport "github.com/go-openapi/runtime/client"
 )
+
+const remoteApiKey = "1bce398a-0957-453e-b772-da4b4140e0ba"
+const discoveryEndpoint = "136.244.108.126"
 
 type TorrentService struct {
 	manager *torrent.Manager
 
-	sessions map[string]types.SearchSession
 	database *db.Database
 	mutex    sync.Mutex
 }
 
 func NewService(database *db.Database, manager *torrent.Manager) *TorrentService {
 	return &TorrentService{
-		sessions: make(map[string]types.SearchSession),
 		database: database,
 		manager:  manager,
 	}
@@ -35,52 +38,57 @@ func NewService(database *db.Database, manager *torrent.Manager) *TorrentService
 
 func (service *TorrentService) ListTrackers(ctx context.Context, in *rms_torrent.ListTrackersRequest, out *rms_torrent.ListTrackersResponse) error {
 	logger.Debug("ListTrackers() request")
-	out.Trackers = trackers.ListTrackers()
+	out.Trackers = []*rms_torrent.TrackerInfo{
+		&rms_torrent.TrackerInfo{
+			Id:            "rms-media-discovery",
+			Name:          "Media Discovery",
+			LoginRequired: false,
+		},
+	}
 	return nil
+}
+
+func get[T any](v *T) T {
+	if v == nil {
+		return *new(T)
+	}
+	return *v
 }
 
 func (service *TorrentService) Search(ctx context.Context, in *rms_torrent.SearchRequest, out *rms_torrent.SearchResponse) error {
 	logger.Debugf("Search('%+v') request", *in)
 
-	login, password := accounts.Get(in.Tracker)
+	tr := httptransport.New(discoveryEndpoint, "", client.DefaultSchemes)
+	auth := httptransport.APIKeyAuth("X-Token", "header", remoteApiKey)
+	cli := client.New(tr, strfmt.Default)
 
-	service.mutex.Lock()
-	defer service.mutex.Unlock()
+	typeHint := "movies"
+	var limit int64
+	limit = 10
 
-	id := base64.StdEncoding.EncodeToString([]byte(in.Tracker + ":" + login + ":" + password))
-	session, err := service.getSession(id, login, password, in.Tracker)
+	q := &torrents.SearchTorrentsParams{
+		Limit:   &limit,
+		Q:       in.Text,
+		Type:    &typeHint,
+		Context: ctx,
+	}
 
+	resp, err := cli.Torrents.SearchTorrents(q, auth)
 	if err != nil {
-		putError(err, out)
-		return nil
+		return err
 	}
+	list := resp.GetPayload().Results
 
-	if in.Captcha != "" {
-		session.SetCaptchaText(in.Captcha)
-	}
-
-	torrents, err := session.Search(in.Text)
-	if err != nil {
-		putError(err, out)
-		return nil
-	}
-
-	sort.Slice(torrents, func(i, j int) bool {
-		return torrents[i].Peers > torrents[j].Peers
-	})
-
-	out.Results = make([]*rms_torrent.Torrent, len(torrents))
-	for i, t := range torrents {
+	out.Results = make([]*rms_torrent.Torrent, len(list))
+	for i, t := range list {
 		result := rms_torrent.Torrent{
 			Title: t.Title,
-			Link:  t.DownloadLink,
-			Size:  t.Size,
-			Peers: int32(t.Peers),
+			Link:  get(t.Link),
+			Size:  fmt.Sprintf("%d MB", t.Size),
+			Peers: int32(t.Seeders),
 		}
 		out.Results[i] = &result
 	}
-
-	out.SessionID = id
 
 	return nil
 }
@@ -88,26 +96,25 @@ func (service *TorrentService) Search(ctx context.Context, in *rms_torrent.Searc
 func (service *TorrentService) Download(ctx context.Context, in *rms_torrent.DownloadRequest, out *rms_torrent.DownloadResponse) error {
 	logger.Debugf("Download('%+v') request", *in)
 
-	service.mutex.Lock()
-	defer service.mutex.Unlock()
+	tr := httptransport.New(discoveryEndpoint, "", client.DefaultSchemes)
+	auth := httptransport.APIKeyAuth("X-Token", "header", remoteApiKey)
+	cli := client.New(tr, strfmt.Default)
 
-	out.DownloadStarted = false
-
-	session, ok := service.sessions[in.SessionID]
-	if !ok {
-		logger.Errorf("Unknown session: %s", in.SessionID)
-		out.ErrorReason = "Unknown session"
-		return nil
+	req := &torrents.DownloadTorrentParams{
+		Link:    in.TorrentLink,
+		Context: ctx,
 	}
 
-	file, err := session.Download(in.TorrentLink)
+	buf := bytes.NewBuffer([]byte{})
+
+	_, err := cli.Torrents.DownloadTorrent(req, auth, buf)
 	if err != nil {
-		logger.Errorf("Session download error: %s", err)
+		logger.Errorf("Download failed: %s", err)
 		out.ErrorReason = err.Error()
-		return nil
+		return err
 	}
 
-	_, err = service.manager.Download(file)
+	_, err = service.manager.Download(buf.Bytes())
 	if err != nil {
 		logger.Errorf("Manager download error: %s", err)
 		out.ErrorReason = err.Error()
@@ -138,29 +145,7 @@ func putError(err error, out *rms_torrent.SearchResponse) {
 	out.ErrorReason = e.Error()
 }
 
-func (service *TorrentService) getSession(id, user, password, tracker string) (types.SearchSession, error) {
-	var err error
-	session, ok := service.sessions[id]
-	if !ok {
-		session, err = trackers.NewSession(tracker)
-		if session != nil {
-			session.Setup(types.SessionSettings{
-				User:      user,
-				Password:  password,
-				UserAgent: "RacoonMediaServer",
-				ProxyURL:  utils.GetProxyURL(),
-			})
-			service.sessions[id] = session
-		}
-	}
-
-	return session, err
-}
-
 func (service *TorrentService) RefreshSettings(ctx context.Context, in *emptypb.Empty, out *emptypb.Empty) error {
-	if err := accounts.Load(service.database); err != nil {
-		logger.Errorf("Update torrent accounts failed: %+v", err)
-	}
 	return nil
 }
 

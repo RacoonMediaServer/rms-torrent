@@ -4,7 +4,6 @@ import (
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/pubsub"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/accounts"
 	tservice "git.rms.local/RacoonMediaServer/rms-torrent/internal/service"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
@@ -13,7 +12,7 @@ import (
 	"go-micro.dev/v4/logger"
 )
 
-const version = "1.1.0"
+const version = "1.2.0"
 
 func main() {
 	useDebug := false
@@ -48,11 +47,7 @@ func main() {
 
 	database, err := db.Connect(utils.Config().Database)
 	if err != nil {
-		logger.Fatal(err)
-	}
-
-	if err := accounts.Load(database); err != nil {
-		logger.Errorf("Load torrent accounts failed: %+v", err)
+		//logger.Fatal(err)
 	}
 
 	manager, err := torrent.NewManager(utils.Config().Torrents, pubsub.NewPublisher(service))
