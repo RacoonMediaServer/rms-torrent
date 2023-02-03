@@ -15,7 +15,7 @@ import (
 	"go-micro.dev/v4/logger"
 )
 
-type Manager struct {
+type manager struct {
 	session *torrent.Session
 
 	taskCh chan *torrent.Torrent
@@ -26,6 +26,14 @@ type Manager struct {
 	cancel context.CancelFunc
 }
 
+type Manager interface {
+	Download(torrentFileContent []byte) (id string, err error)
+	GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error)
+	GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo
+	RemoveTorrent(id string) error
+	Stop()
+}
+
 const maxDownloadTasks = 1000
 const publishTimeout = 10 * time.Second
 
@@ -33,7 +41,7 @@ func tLogName(t *torrent.Torrent) string {
 	return fmt.Sprintf("[%s:%s]", t.ID(), t.Stats().Name)
 }
 
-func NewManager(settings utils.TorrentsSettings, pub micro.Event) (*Manager, error) {
+func New(settings utils.TorrentsSettings, pub micro.Event) (Manager, error) {
 	var err error
 
 	conf := torrent.DefaultConfig
@@ -44,7 +52,7 @@ func NewManager(settings utils.TorrentsSettings, pub micro.Event) (*Manager, err
 	conf.SpeedLimitDownload = int64(settings.MaxSpeed)
 	conf.SpeedLimitUpload = int64(settings.MaxSpeed)
 
-	m := &Manager{
+	m := &manager{
 		taskCh: make(chan *torrent.Torrent, maxDownloadTasks),
 		pub:    pub,
 	}
@@ -81,7 +89,7 @@ func NewManager(settings utils.TorrentsSettings, pub micro.Event) (*Manager, err
 	return m, nil
 }
 
-func (m *Manager) Download(torrentFileContent []byte) (id string, err error) {
+func (m *manager) Download(torrentFileContent []byte) (id string, err error) {
 	id = uuid.NewV4().String()
 	t, err := m.session.AddTorrent(bytes.NewReader(torrentFileContent), &torrent.AddTorrentOptions{
 		ID:      id,
@@ -118,7 +126,7 @@ func extractTorrentInfo(t *torrent.Torrent, out *rms_torrent.TorrentInfo) {
 	}
 }
 
-func (m *Manager) GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error) {
+func (m *manager) GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error) {
 	t := m.session.GetTorrent(id)
 	if t == nil {
 		err = fmt.Errorf("torrent %s not found", id)
@@ -129,7 +137,7 @@ func (m *Manager) GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err
 	return
 }
 
-func (m *Manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo {
+func (m *manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo {
 	torrents := m.session.ListTorrents()
 	result := make([]*rms_torrent.TorrentInfo, 0, len(torrents))
 	for _, t := range torrents {
@@ -145,11 +153,11 @@ func (m *Manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentIn
 	return result
 }
 
-func (m *Manager) RemoveTorrent(id string) error {
+func (m *manager) RemoveTorrent(id string) error {
 	return m.session.RemoveTorrent(id)
 }
 
-func (m *Manager) Stop() {
+func (m *manager) Stop() {
 	logger.Info("Stopping...")
 	m.cancel()
 	m.wg.Wait()

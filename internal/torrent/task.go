@@ -9,7 +9,7 @@ import (
 	"go-micro.dev/v4/logger"
 )
 
-func (m *Manager) processTasks() {
+func (m *manager) processTasks() {
 	defer m.wg.Done()
 
 	for {
@@ -24,7 +24,7 @@ func (m *Manager) processTasks() {
 	}
 }
 
-func (m *Manager) startTask(t *torrent.Torrent) bool {
+func (m *manager) startTask(t *torrent.Torrent) bool {
 	if err := t.Start(); err != nil {
 		logger.Errorf("%s: start download failed: %s", tLogName(t), err)
 		return true
@@ -49,7 +49,7 @@ func (m *Manager) startTask(t *torrent.Torrent) bool {
 	}
 }
 
-func (m *Manager) completeTask(t *torrent.Torrent) {
+func (m *manager) completeTask(t *torrent.Torrent) {
 	logger.Infof("%s: download complete", tLogName(t))
 	m.publish(&events.Notification{
 		Kind: events.Notification_DownloadComplete,
@@ -60,7 +60,7 @@ func (m *Manager) completeTask(t *torrent.Torrent) {
 	})
 }
 
-func (m *Manager) publish(event *events.Notification) {
+func (m *manager) publish(event *events.Notification) {
 	ctx, cancel := context.WithTimeout(m.ctx, publishTimeout)
 	defer cancel()
 

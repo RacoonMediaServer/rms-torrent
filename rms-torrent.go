@@ -1,7 +1,6 @@
 package main
 
 import (
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/db"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/pubsub"
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	tservice "git.rms.local/RacoonMediaServer/rms-torrent/internal/service"
@@ -42,20 +41,17 @@ func main() {
 	)
 
 	if useDebug {
-		logger.Init(logger.WithLevel(logger.DebugLevel))
+		_ = logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
-	database, err := db.Connect(utils.Config().Database)
-	if err != nil {
-		//logger.Fatal(err)
-	}
-
-	manager, err := torrent.NewManager(utils.Config().Torrents, pubsub.NewPublisher(service))
+	manager, err := torrent.New(utils.Config().Torrents, pubsub.NewPublisher(service))
 	if err != nil {
 		logger.Fatalf("cannot start manager: %s", err)
 	}
 
-	rms_torrent.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(database, manager))
+	if err = rms_torrent.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(manager)); err != nil {
+		logger.Fatalf("Cannot initialize service handler: %s", err)
+	}
 
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)

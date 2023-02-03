@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	git.rms.local/RacoonMediaServer/rms-media-discovery v1.0.3
-	git.rms.local/RacoonMediaServer/rms-shared v1.2.3
+	git.rms.local/RacoonMediaServer/rms-shared v1.4.1
 	github.com/cenkalti/rain v1.12.2
 	github.com/go-openapi/runtime v0.25.0
 	github.com/go-openapi/strfmt v0.21.3
