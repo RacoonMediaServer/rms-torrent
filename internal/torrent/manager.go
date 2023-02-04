@@ -27,7 +27,7 @@ type manager struct {
 }
 
 type Manager interface {
-	Download(content []byte) (id string, err error)
+	Download(content []byte) (id string, files []string, err error)
 	GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error)
 	GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo
 	RemoveTorrent(id string) error
@@ -89,7 +89,7 @@ func New(settings utils.TorrentsSettings, pub micro.Event) (Manager, error) {
 	return m, nil
 }
 
-func (m *manager) Download(content []byte) (id string, err error) {
+func (m *manager) Download(content []byte) (id string, files []string, err error) {
 	id = uuid.NewV4().String()
 	var t *torrent.Torrent
 
@@ -98,7 +98,9 @@ func (m *manager) Download(content []byte) (id string, err error) {
 		Stopped: true,
 	}
 
-	if isMagnetLink(content) {
+	isMagnet := isMagnetLink(content)
+
+	if isMagnet {
 		t, err = m.session.AddURI(string(content), opts)
 	} else {
 		t, err = m.session.AddTorrent(bytes.NewReader(content), opts)
@@ -106,6 +108,28 @@ func (m *manager) Download(content []byte) (id string, err error) {
 
 	if err != nil {
 		err = fmt.Errorf("cannot add torrent: %w", err)
+		return
+	}
+
+	if isMagnet {
+		if err = t.Start(); err != nil {
+			err = fmt.Errorf("cannot retrieve data by magnet link: %w", err)
+			_ = m.session.RemoveTorrent(id)
+			return
+		}
+		<-t.NotifyMetadata()
+		_ = t.Stop()
+		content, err = t.Torrent()
+		if err != nil {
+			err = fmt.Errorf("cannot retrieve torrent data by magnet link: %w", err)
+			_ = m.session.RemoveTorrent(id)
+			return
+		}
+	}
+
+	files, err = getTorrentFiles(t.Name(), content)
+	if err != nil {
+		err = fmt.Errorf("get torrent files failed: %w", err)
 		return
 	}
 

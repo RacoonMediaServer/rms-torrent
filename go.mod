@@ -3,8 +3,9 @@ module git.rms.local/RacoonMediaServer/rms-torrent
 go 1.18
 
 require (
-	git.rms.local/RacoonMediaServer/rms-shared v1.4.2
+	git.rms.local/RacoonMediaServer/rms-shared v1.4.3
 	github.com/cenkalti/rain v1.12.2
+	github.com/jackpal/bencode-go v1.0.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/urfave/cli/v2 v2.10.2
 	go-micro.dev/v4 v4.7.0
@@ -33,7 +34,6 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/jackpal/bencode-go v1.0.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jinzhu/gorm v1.9.12 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect

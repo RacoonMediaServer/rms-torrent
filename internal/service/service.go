@@ -26,13 +26,14 @@ func NewService(manager torrent.Manager) *TorrentService {
 func (service *TorrentService) Download(ctx context.Context, in *rms_torrent.DownloadRequest, out *rms_torrent.DownloadResponse) error {
 	logger.Debugf("Download('%+v') request", *in)
 
-	id, err := service.manager.Download(in.What)
+	id, files, err := service.manager.Download(in.What)
 	if err != nil {
 		logger.Errorf("manager download error: %s", err)
 		return err
 	}
 
 	out.Id = id
+	out.Files = files
 
 	return nil
 }
