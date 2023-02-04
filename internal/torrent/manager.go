@@ -27,7 +27,7 @@ type manager struct {
 }
 
 type Manager interface {
-	Download(torrentFileContent []byte) (id string, err error)
+	Download(content []byte) (id string, err error)
 	GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error)
 	GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo
 	RemoveTorrent(id string) error
@@ -89,12 +89,21 @@ func New(settings utils.TorrentsSettings, pub micro.Event) (Manager, error) {
 	return m, nil
 }
 
-func (m *manager) Download(torrentFileContent []byte) (id string, err error) {
+func (m *manager) Download(content []byte) (id string, err error) {
 	id = uuid.NewV4().String()
-	t, err := m.session.AddTorrent(bytes.NewReader(torrentFileContent), &torrent.AddTorrentOptions{
+	var t *torrent.Torrent
+
+	opts := &torrent.AddTorrentOptions{
 		ID:      id,
 		Stopped: true,
-	})
+	}
+
+	if isMagnetLink(content) {
+		t, err = m.session.AddURI(string(content), opts)
+	} else {
+		t, err = m.session.AddTorrent(bytes.NewReader(content), opts)
+	}
+
 	if err != nil {
 		err = fmt.Errorf("cannot add torrent: %w", err)
 		return
