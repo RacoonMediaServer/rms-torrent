@@ -13,8 +13,8 @@ type TorrentService struct {
 }
 
 func (service *TorrentService) UpPriority(ctx context.Context, request *rms_torrent.UpPriorityRequest, empty *emptypb.Empty) error {
-	//TODO implement me
-	panic("implement me")
+	logger.Debugf("Up %s", request.Id)
+	return service.manager.Up(request.Id)
 }
 
 func NewService(manager torrent.Manager) *TorrentService {

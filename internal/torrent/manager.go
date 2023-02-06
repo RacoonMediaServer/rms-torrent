@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"sync"
-	"time"
-
 	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
 	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
 	"github.com/cenkalti/rain/torrent"
@@ -17,13 +14,7 @@ import (
 
 type manager struct {
 	session *torrent.Session
-
-	taskCh chan *torrent.Torrent
-	pub    micro.Event
-
-	wg     sync.WaitGroup
-	ctx    context.Context
-	cancel context.CancelFunc
+	q       *torrentQueue
 }
 
 type Manager interface {
@@ -31,11 +22,9 @@ type Manager interface {
 	GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error)
 	GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo
 	RemoveTorrent(id string) error
+	Up(id string) error
 	Stop()
 }
-
-const maxDownloadTasks = 1000
-const publishTimeout = 10 * time.Second
 
 func tLogName(t *torrent.Torrent) string {
 	return fmt.Sprintf("[%s:%s]", t.ID(), t.Stats().Name)
@@ -52,15 +41,14 @@ func New(settings utils.TorrentsSettings, pub micro.Event) (Manager, error) {
 	conf.SpeedLimitDownload = int64(settings.MaxSpeed)
 	conf.SpeedLimitUpload = int64(settings.MaxSpeed)
 
-	m := &manager{
-		taskCh: make(chan *torrent.Torrent, maxDownloadTasks),
-		pub:    pub,
-	}
+	m := &manager{}
 
 	m.session, err = torrent.NewSession(conf)
 	if err != nil {
 		return m, fmt.Errorf("cannot run torrent client session: %w", err)
 	}
+
+	m.q = newTorrentQueue(context.Background(), pub)
 
 	torrents := m.session.ListTorrents()
 	for _, t := range torrents {
@@ -69,7 +57,7 @@ func New(settings utils.TorrentsSettings, pub micro.Event) (Manager, error) {
 		isComplete := stats.Pieces.Missing == 0
 		if !isComplete && stats.Status != torrent.Stopped && stats.Status != torrent.Seeding {
 			logger.Infof("%s: queued (status = %s)", tLogName(t), stats.Status.String())
-			m.taskCh <- t
+			m.q.Push(t)
 		}
 	}
 
@@ -77,14 +65,9 @@ func New(settings utils.TorrentsSettings, pub micro.Event) (Manager, error) {
 		stats := t.Stats()
 		if stats.Status == torrent.Stopped {
 			logger.Infof("%s: queued (status = %s)", tLogName(t), stats.Status.String())
-			m.taskCh <- t
+			m.q.Push(t)
 		}
 	}
-
-	m.ctx, m.cancel = context.WithCancel(context.TODO())
-
-	m.wg.Add(1)
-	go m.processTasks()
 
 	return m, nil
 }
@@ -135,7 +118,7 @@ func (m *manager) Download(content []byte) (id string, files []string, err error
 
 	logger.Infof("%s: added to queue", tLogName(t))
 
-	m.taskCh <- t
+	m.q.Push(t)
 
 	return
 }
@@ -187,12 +170,16 @@ func (m *manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentIn
 }
 
 func (m *manager) RemoveTorrent(id string) error {
+	m.q.Remove(id)
 	return m.session.RemoveTorrent(id)
+}
+
+func (m *manager) Up(id string) error {
+	return m.q.Up(id)
 }
 
 func (m *manager) Stop() {
 	logger.Info("Stopping...")
-	m.cancel()
-	m.wg.Wait()
+	m.q.Stop()
 	m.session.Close()
 }

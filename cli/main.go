@@ -7,50 +7,97 @@ import (
 	"go-micro.dev/v4"
 	"io"
 	"os"
+	"strings"
 )
 import "github.com/urfave/cli/v2"
 
 func main() {
-	var file string
-	var magnet string
+	var command string
+	var item string
 	service := micro.NewService(
 		micro.Name("rms-torrent.client"),
 		micro.Flags(
 			&cli.StringFlag{
-				Name:        "file",
-				Usage:       "torrent file path",
-				Required:    false,
-				Destination: &file,
+				Name:        "command",
+				Usage:       "Must be one of: download, list, remove, up",
+				Required:    true,
+				Destination: &command,
 			},
 			&cli.StringFlag{
-				Name:        "magnet",
-				Usage:       "magnet link to download",
+				Name:        "item",
+				Usage:       "item - id or path to torrent file or magnet link",
 				Required:    false,
-				Destination: &magnet,
+				Destination: &item,
 			},
 		),
 	)
 	service.Init()
 
 	client := rms_torrent.NewRmsTorrentService("rms-torrent", service.Client())
-	content := []byte(magnet)
 
-	if file != "" {
+	switch command {
+	case "download":
+		if err := download(client, item); err != nil {
+			panic(err)
+		}
+	case "list":
+		if err := list(client); err != nil {
+			panic(err)
+		}
+	case "remove":
+		if err := remove(client, item); err != nil {
+			panic(err)
+		}
+	case "up":
+		if err := up(client, item); err != nil {
+			panic(err)
+		}
+	default:
+		panic("unknown command: " + command)
+	}
+}
+
+func download(cli rms_torrent.RmsTorrentService, file string) error {
+	content := []byte(file)
+
+	if !strings.HasPrefix(file, "magnet") {
 		f, err := os.Open(file)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		content, err = io.ReadAll(f)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		defer f.Close()
 	}
 
-	resp, err := client.Download(context.Background(), &rms_torrent.DownloadRequest{What: content})
+	resp, err := cli.Download(context.Background(), &rms_torrent.DownloadRequest{What: content})
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	fmt.Printf("(%s) Files: %+v", resp.Id, resp.Files)
+	fmt.Printf("(%s) Download files: %+v\n", resp.Id, resp.Files)
+	return nil
+}
+
+func list(cli rms_torrent.RmsTorrentService) error {
+	result, err := cli.GetTorrents(context.Background(), &rms_torrent.GetTorrentsRequest{IncludeDoneTorrents: false})
+	if err != nil {
+		return err
+	}
+	for _, t := range result.Torrents {
+		fmt.Println(t.Id, t.Title, t.Status, t.Progress, t.Estimate)
+	}
+	return nil
+}
+
+func remove(cli rms_torrent.RmsTorrentService, id string) error {
+	_, err := cli.RemoveTorrent(context.Background(), &rms_torrent.RemoveTorrentRequest{Id: id})
+	return err
+}
+
+func up(cli rms_torrent.RmsTorrentService, id string) error {
+	_, err := cli.UpPriority(context.Background(), &rms_torrent.UpPriorityRequest{Id: id})
+	return err
 }
