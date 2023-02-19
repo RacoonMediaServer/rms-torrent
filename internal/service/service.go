@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"git.rms.local/RacoonMediaServer/rms-media-discovery/pkg/client/client"
-	"git.rms.local/RacoonMediaServer/rms-media-discovery/pkg/client/client/torrents"
+	"github.com/RacoonMediaServer/rms-media-discovery/pkg/client/client"
+	"github.com/RacoonMediaServer/rms-media-discovery/pkg/client/client/torrents"
 	"github.com/go-openapi/strfmt"
 	"sync"
 
@@ -19,7 +19,7 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 )
 
-const remoteApiKey = "1bce398a-0957-453e-b772-da4b4140e0ba"
+const remoteApiKey = "b6c308fd-6a7f-441f-b120-a8d6e24126d9"
 const discoveryEndpoint = "136.244.108.126"
 
 type TorrentService struct {
@@ -58,7 +58,7 @@ func get[T any](v *T) T {
 func (service *TorrentService) Search(ctx context.Context, in *rms_torrent.SearchRequest, out *rms_torrent.SearchResponse) error {
 	logger.Debugf("Search('%+v') request", *in)
 
-	tr := httptransport.New(discoveryEndpoint, "", client.DefaultSchemes)
+	tr := httptransport.New(discoveryEndpoint, "/media", client.DefaultSchemes)
 	auth := httptransport.APIKeyAuth("X-Token", "header", remoteApiKey)
 	cli := client.New(tr, strfmt.Default)
 
@@ -82,10 +82,10 @@ func (service *TorrentService) Search(ctx context.Context, in *rms_torrent.Searc
 	out.Results = make([]*rms_torrent.Torrent, len(list))
 	for i, t := range list {
 		result := rms_torrent.Torrent{
-			Title: t.Title,
+			Title: *t.Title,
 			Link:  get(t.Link),
 			Size:  fmt.Sprintf("%d MB", t.Size),
-			Peers: int32(t.Seeders),
+			Peers: int32(*t.Seeders),
 		}
 		out.Results[i] = &result
 	}
