@@ -96,7 +96,7 @@ func (service *TorrentService) Search(ctx context.Context, in *rms_torrent.Searc
 func (service *TorrentService) Download(ctx context.Context, in *rms_torrent.DownloadRequest, out *rms_torrent.DownloadResponse) error {
 	logger.Debugf("Download('%+v') request", *in)
 
-	tr := httptransport.New(discoveryEndpoint, "", client.DefaultSchemes)
+	tr := httptransport.New(discoveryEndpoint, "/media", client.DefaultSchemes)
 	auth := httptransport.APIKeyAuth("X-Token", "header", remoteApiKey)
 	cli := client.New(tr, strfmt.Default)
 
