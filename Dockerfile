@@ -1,16 +1,12 @@
 FROM golang as builder
-WORKDIR /go/src/git.rms.local/RacoonMediaServer/rms-torrent
-ARG GIT_PASSWORD=$GIT_PASSWORD
+WORKDIR /src/service
 COPY . .
-RUN go env -w GOPRIVATE=git.rms.local \
-  && go env -w GOINSECURE=git.rms.local  \
-  && rm -rf .git \
-  && git config --global url."http://racoon:$GIT_PASSWORD@git.rms.local/".insteadOf "http://git.rms.local/"  \
-  && go get
-RUN CGO_ENABLED=0 GOOS=linux go build -o rms-torrent -a -installsuffix cgo rms-torrent.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Version=`git tag --sort=-version:refname | head -n 1`" -o rms-template -a -installsuffix cgo rms-torrent.go
+
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates tzdata
 RUN mkdir /app
 WORKDIR /app
-COPY --from=builder /go/src/git.rms.local/RacoonMediaServer/rms-torrent/rms-torrent .
+COPY --from=builder /src/service/rms-torrent .
+COPY --from=builder /src/service/configs/rms-torrent.json /etc/rms/
 CMD ["./rms-torrent"]

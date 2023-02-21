@@ -1,15 +1,4 @@
 {
-  "database": {
-    "host": "localhost",
-    "port": 5432,
-    "user": "rms",
-    "password": "",
-    "database": "rms"
-  },
-  "proxy" : {
-    "enabled": false,
-    "url": ""
-  },
   "torrents": {
     "directory": "/media",
     "maxSpeed": 2048,

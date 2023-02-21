@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/torrent"
+	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
+	"github.com/RacoonMediaServer/rms-torrent/internal/torrent"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

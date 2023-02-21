@@ -1,24 +1,24 @@
 package main
 
 import (
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/pubsub"
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
-	tservice "git.rms.local/RacoonMediaServer/rms-torrent/internal/service"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/torrent"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
+	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
+	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
+	"github.com/RacoonMediaServer/rms-torrent/internal/config"
+	tservice "github.com/RacoonMediaServer/rms-torrent/internal/service"
+	"github.com/RacoonMediaServer/rms-torrent/internal/torrent"
 	"github.com/urfave/cli/v2"
 	micro "go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 )
 
-const version = "2.0.0"
+const Version = "0.0.0"
 
 func main() {
 	useDebug := false
 
 	service := micro.NewService(
 		micro.Name("rms-torrent"),
-		micro.Version(version),
+		micro.Version(Version),
 		micro.Flags(
 			&cli.BoolFlag{
 				Name:        "verbose",
@@ -36,7 +36,7 @@ func main() {
 			if context.IsSet("config") {
 				configFile = context.String("config")
 			}
-			return utils.LoadConfig(configFile)
+			return config.Load(configFile)
 		}),
 	)
 
@@ -44,7 +44,7 @@ func main() {
 		_ = logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
-	manager, err := torrent.New(utils.Config().Torrents, pubsub.NewPublisher(service))
+	manager, err := torrent.New(config.Config().Torrents, pubsub.NewPublisher(service))
 	if err != nil {
 		logger.Fatalf("cannot start manager: %s", err)
 	}

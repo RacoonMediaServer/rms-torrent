@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
+	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"go-micro.dev/v4"
 	"io"
 	"os"

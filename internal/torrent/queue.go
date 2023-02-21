@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"context"
 	"errors"
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/events"
+	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	"github.com/cenkalti/rain/torrent"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
@@ -140,12 +140,13 @@ func (q *torrentQueue) processTask(ctx context.Context, t *torrent.Torrent) {
 
 func (q *torrentQueue) completeTask(t *torrent.Torrent) {
 	logger.Infof("%s: download complete", tLogName(t))
+	id := t.ID()
+	name := t.Name()
+
 	q.publish(&events.Notification{
-		Kind: events.Notification_DownloadComplete,
-		Detailed: map[string]string{
-			"id":   t.ID(),
-			"item": t.Name(),
-		},
+		Kind:      events.Notification_DownloadComplete,
+		TorrentID: &id,
+		ItemTitle: &name,
 	})
 
 	q.mu.Lock()

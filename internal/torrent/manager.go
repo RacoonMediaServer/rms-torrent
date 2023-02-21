@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"git.rms.local/RacoonMediaServer/rms-shared/pkg/service/rms_torrent"
-	"git.rms.local/RacoonMediaServer/rms-torrent/internal/utils"
+	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
+	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/cenkalti/rain/torrent"
 	uuid "github.com/satori/go.uuid"
 	"go-micro.dev/v4"
@@ -30,7 +30,7 @@ func tLogName(t *torrent.Torrent) string {
 	return fmt.Sprintf("[%s:%s]", t.ID(), t.Stats().Name)
 }
 
-func New(settings utils.TorrentsSettings, pub micro.Event) (Manager, error) {
+func New(settings config.TorrentsSettings, pub micro.Event) (Manager, error) {
 	var err error
 
 	conf := torrent.DefaultConfig
