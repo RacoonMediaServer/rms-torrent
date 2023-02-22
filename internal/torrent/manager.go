@@ -37,7 +37,7 @@ func New(settings config.TorrentsSettings, pub micro.Event) (Manager, error) {
 	conf.DataDir = settings.Directory
 	conf.Database = settings.Db
 	conf.RPCEnabled = false
-	conf.DataDirIncludesTorrentID = false
+	conf.DataDirIncludesTorrentID = true
 	conf.SpeedLimitDownload = int64(settings.MaxSpeed)
 	conf.SpeedLimitUpload = int64(settings.MaxSpeed)
 

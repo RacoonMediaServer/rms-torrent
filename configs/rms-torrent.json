@@ -1,7 +1,7 @@
 {
   "torrents": {
-    "directory": "/media",
+    "directory": "/media/library/torrents",
     "maxSpeed": 2048,
-    "db": "/db"
+    "db": "db"
   }
 }
