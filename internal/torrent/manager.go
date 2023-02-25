@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/cenkalti/rain/torrent"
@@ -12,25 +13,17 @@ import (
 	"go-micro.dev/v4/logger"
 )
 
-type manager struct {
+type Manager struct {
 	session *torrent.Session
 	q       *torrentQueue
-}
-
-type Manager interface {
-	Download(content []byte) (id string, files []string, err error)
-	GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error)
-	GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo
-	RemoveTorrent(id string) error
-	Up(id string) error
-	Stop()
+	pub     micro.Event
 }
 
 func tLogName(t *torrent.Torrent) string {
 	return fmt.Sprintf("[%s:%s]", t.ID(), t.Stats().Name)
 }
 
-func New(settings config.TorrentsSettings, pub micro.Event) (Manager, error) {
+func New(settings config.TorrentsSettings, pub micro.Event) (*Manager, error) {
 	var err error
 
 	conf := torrent.DefaultConfig
@@ -41,7 +34,7 @@ func New(settings config.TorrentsSettings, pub micro.Event) (Manager, error) {
 	conf.SpeedLimitDownload = int64(settings.MaxSpeed)
 	conf.SpeedLimitUpload = int64(settings.MaxSpeed)
 
-	m := &manager{}
+	m := &Manager{pub: pub}
 
 	m.session, err = torrent.NewSession(conf)
 	if err != nil {
@@ -72,7 +65,7 @@ func New(settings config.TorrentsSettings, pub micro.Event) (Manager, error) {
 	return m, nil
 }
 
-func (m *manager) Download(content []byte) (id string, files []string, err error) {
+func (m *Manager) Download(content []byte) (id string, files []string, err error) {
 	id = uuid.NewV4().String()
 	var t *torrent.Torrent
 
@@ -116,6 +109,10 @@ func (m *manager) Download(content []byte) (id string, files []string, err error
 		return
 	}
 
+	if len(files) == 0 {
+		files = []string{t.Name()}
+	}
+
 	logger.Infof("%s: added to queue", tLogName(t))
 
 	m.q.Push(t)
@@ -142,7 +139,7 @@ func extractTorrentInfo(t *torrent.Torrent, out *rms_torrent.TorrentInfo) {
 	}
 }
 
-func (m *manager) GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error) {
+func (m *Manager) GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err error) {
 	t := m.session.GetTorrent(id)
 	if t == nil {
 		err = fmt.Errorf("torrent %s not found", id)
@@ -153,7 +150,7 @@ func (m *manager) GetTorrentInfo(id string) (result rms_torrent.TorrentInfo, err
 	return
 }
 
-func (m *manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo {
+func (m *Manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentInfo {
 	torrents := m.session.ListTorrents()
 	result := make([]*rms_torrent.TorrentInfo, 0, len(torrents))
 	for _, t := range torrents {
@@ -169,16 +166,32 @@ func (m *manager) GetTorrents(includeDoneTorrents bool) []*rms_torrent.TorrentIn
 	return result
 }
 
-func (m *manager) RemoveTorrent(id string) error {
+func (m *Manager) RemoveTorrent(ctx context.Context, id string) error {
 	m.q.Remove(id)
-	return m.session.RemoveTorrent(id)
+	if err := m.session.RemoveTorrent(id); err != nil {
+		return err
+	}
+
+	event := events.Notification{
+		Kind:      events.Notification_TorrentRemoved,
+		TorrentID: &id,
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, publishTimeout)
+	defer cancel()
+
+	if err := m.pub.Publish(ctx, &event); err != nil {
+		logger.Warnf("Publish notification failed: %s", err)
+	}
+
+	return nil
 }
 
-func (m *manager) Up(id string) error {
+func (m *Manager) Up(id string) error {
 	return m.q.Up(id)
 }
 
-func (m *manager) Stop() {
+func (m *Manager) Stop() {
 	logger.Info("Stopping...")
 	m.q.Stop()
 	m.session.Close()

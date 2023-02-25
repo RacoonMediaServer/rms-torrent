@@ -9,7 +9,7 @@ import (
 )
 
 type TorrentService struct {
-	manager torrent.Manager
+	manager *torrent.Manager
 }
 
 func (service *TorrentService) UpPriority(ctx context.Context, request *rms_torrent.UpPriorityRequest, empty *emptypb.Empty) error {
@@ -17,7 +17,7 @@ func (service *TorrentService) UpPriority(ctx context.Context, request *rms_torr
 	return service.manager.Up(request.Id)
 }
 
-func NewService(manager torrent.Manager) *TorrentService {
+func NewService(manager *torrent.Manager) *TorrentService {
 	return &TorrentService{
 		manager: manager,
 	}
@@ -58,7 +58,7 @@ func (service *TorrentService) GetTorrents(ctx context.Context, in *rms_torrent.
 }
 
 func (service *TorrentService) RemoveTorrent(ctx context.Context, in *rms_torrent.RemoveTorrentRequest, out *emptypb.Empty) error {
-	if err := service.manager.RemoveTorrent(in.Id); err != nil {
+	if err := service.manager.RemoveTorrent(ctx, in.Id); err != nil {
 		logger.Warnf("cannot remove torrent: %s", err)
 		return err
 	}
