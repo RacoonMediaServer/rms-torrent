@@ -105,6 +105,7 @@ func (m *Manager) Download(content []byte) (id string, files []string, err error
 
 	files, err = getTorrentFiles(t.Name(), content)
 	if err != nil {
+		_ = m.session.RemoveTorrent(id)
 		err = fmt.Errorf("get torrent files failed: %w", err)
 		return
 	}

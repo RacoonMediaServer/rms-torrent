@@ -62,6 +62,7 @@ func (q *torrentQueue) Remove(id string) {
 
 	if q.task != nil && q.task.ID() == id {
 		q.taskCancel()
+		q.task = nil
 		q.startNextTask()
 	}
 }
