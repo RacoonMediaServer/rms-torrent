@@ -2,14 +2,9 @@ package config
 
 import "github.com/RacoonMediaServer/rms-packages/pkg/configuration"
 
-type TorrentsSettings struct {
-	Directory string
-	MaxSpeed  uint
-	Db        string
-}
-
 type Configuration struct {
-	Torrents TorrentsSettings
+	Directory string
+	Database  string
 }
 
 var config Configuration

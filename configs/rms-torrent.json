@@ -1,7 +1,4 @@
 {
-  "torrents": {
-    "directory": "/media/library/torrents",
-    "maxSpeed": 2048,
-    "db": "db"
-  }
+  "directory": "/media/library/torrents",
+  "database": "torrents.db"
 }

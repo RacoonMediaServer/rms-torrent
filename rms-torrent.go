@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
+	"github.com/RacoonMediaServer/rms-torrent/internal/downloads"
 	tservice "github.com/RacoonMediaServer/rms-torrent/internal/service"
-	"github.com/RacoonMediaServer/rms-torrent/internal/torrent"
 	"github.com/urfave/cli/v2"
 	micro "go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
@@ -14,6 +13,7 @@ import (
 const Version = "0.0.0"
 
 func main() {
+	logger.Infof("rms-torrent v%s", Version)
 	useDebug := false
 
 	service := micro.NewService(
@@ -44,18 +44,13 @@ func main() {
 		_ = logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
-	manager, err := torrent.New(config.Config().Torrents, pubsub.NewPublisher(service))
-	if err != nil {
-		logger.Fatalf("cannot start manager: %s", err)
-	}
+	manager := downloads.NewManager()
 
-	if err = rms_torrent.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(manager)); err != nil {
+	if err := rms_torrent.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(manager)); err != nil {
 		logger.Fatalf("Cannot initialize service handler: %s", err)
 	}
 
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)
 	}
-
-	manager.Stop()
 }
