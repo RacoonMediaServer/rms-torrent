@@ -1,23 +1,41 @@
 package downloads
 
 import (
+	"context"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
 	uuid "github.com/satori/go.uuid"
 	"path"
 	"sync"
+	"time"
 )
+
+const checkCompleteInterval = 1 * time.Second
 
 type Manager struct {
 	mu    sync.RWMutex
 	tasks map[string]*task
+	queue []string
+
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 func NewManager() *Manager {
-	return &Manager{
+	m := &Manager{
 		tasks: map[string]*task{},
 	}
+
+	m.ctx, m.cancel = context.WithCancel(context.Background())
+	m.wg.Add(1)
+	go func() {
+		defer m.wg.Done()
+		m.monitor()
+	}()
+
+	return m
 }
 
 func (m *Manager) Download(content []byte, description string, faster bool) (id string, files []string, err error) {
@@ -32,13 +50,16 @@ func (m *Manager) Download(content []byte, description string, faster bool) (id 
 		return
 	}
 
-	d.Start()
 	files = d.Files()
 
-	t := &task{d: d}
+	t := &task{
+		id: id,
+		d:  d,
+	}
 
 	m.mu.Lock()
 	m.tasks[id] = t
+	m.pushToQueue(t)
 	m.mu.Unlock()
 
 	return
@@ -60,4 +81,29 @@ func (m *Manager) GetDownloads() []*rms_torrent.TorrentInfo {
 	}
 
 	return result
+}
+
+func (m *Manager) monitor() {
+
+	for {
+		select {
+		case <-m.ctx.Done():
+			return
+		case <-time.After(checkCompleteInterval):
+			m.mu.Lock()
+			m.checkTaskIsComplete()
+			m.mu.Unlock()
+		}
+	}
+}
+
+func (m *Manager) Stop() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for _, t := range m.tasks {
+		t.d.Close()
+	}
+	m.cancel()
+	m.wg.Wait()
 }

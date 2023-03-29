@@ -59,6 +59,7 @@ func newTorrentSession(settings Settings) (Downloader, error) {
 
 func (s *torrentSession) Start() {
 	s.t.DownloadAll()
+	s.t.VerifyData()
 }
 
 func (s *torrentSession) Files() []string {
