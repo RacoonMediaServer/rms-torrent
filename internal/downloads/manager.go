@@ -2,10 +2,12 @@ package downloads
 
 import (
 	"context"
+	"errors"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
 	uuid "github.com/satori/go.uuid"
+	"os"
 	"path"
 	"sync"
 	"time"
@@ -70,17 +72,22 @@ func (m *Manager) GetDownloads() []*rms_torrent.TorrentInfo {
 	defer m.mu.RUnlock()
 
 	result := make([]*rms_torrent.TorrentInfo, 0, len(m.tasks))
-	for id, t := range m.tasks {
-		ti := rms_torrent.TorrentInfo{
-			Id:       id,
-			Title:    t.d.Title(),
-			Progress: t.d.Progress(),
-			Status:   t.status,
-		}
-		result = append(result, &ti)
+	for _, t := range m.tasks {
+		result = append(result, t.Info())
 	}
 
 	return result
+}
+
+func (m *Manager) GetDownloadInfo(id string) (*rms_torrent.TorrentInfo, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	t, ok := m.tasks[id]
+	if !ok {
+		return nil, errors.New("task not found")
+	}
+	return t.Info(), nil
 }
 
 func (m *Manager) monitor() {
@@ -95,6 +102,54 @@ func (m *Manager) monitor() {
 			m.mu.Unlock()
 		}
 	}
+}
+
+func (m *Manager) RemoveDownload(id string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	t, ok := m.tasks[id]
+	if !ok {
+		return errors.New("download not found")
+	}
+
+	delete(m.tasks, id)
+	m.removeFromQueue(id)
+
+	t.Stop()
+	t.d.Close()
+
+	_ = os.RemoveAll(path.Join(config.Config().Directory, id))
+	return nil
+}
+
+func (m *Manager) UpDownload(id string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	found := -1
+	for i := 0; i < len(m.queue) && found == -1; i++ {
+		if m.queue[i] == id {
+			found = i
+		}
+	}
+	if found < 0 {
+		return errors.New("invalid torrent id")
+	}
+
+	if found == 0 {
+		return nil
+	}
+
+	m.tasks[m.queue[0]].Stop()
+	newQueue := make([]string, 0, len(m.queue))
+	newQueue = append(newQueue, id)
+	newQueue = append(newQueue, m.queue[:found]...)
+	newQueue = append(newQueue, m.queue[found+1:]...)
+	m.queue = newQueue
+
+	m.startNextTask()
+	return nil
 }
 
 func (m *Manager) Stop() {

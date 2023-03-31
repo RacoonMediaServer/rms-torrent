@@ -5,7 +5,10 @@ import (
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"golang.org/x/time/rate"
+	"sync/atomic"
 )
+
+var portCounter atomic.Int32
 
 type torrentSession struct {
 	cli   *torrent.Client
@@ -15,6 +18,9 @@ type torrentSession struct {
 
 func newTorrentSession(settings Settings) (Downloader, error) {
 	cfg := torrent.NewDefaultClientConfig()
+
+	portCounter.CompareAndSwap(0, int32(cfg.ListenPort))
+	cfg.ListenPort = int(portCounter.Add(1))
 	cfg.DataDir = settings.Destination
 	if settings.DownloadLimit != 0 {
 		cfg.DownloadRateLimiter = rate.NewLimiter(rate.Limit(settings.DownloadLimit), 1)
@@ -59,7 +65,6 @@ func newTorrentSession(settings Settings) (Downloader, error) {
 
 func (s *torrentSession) Start() {
 	s.t.DownloadAll()
-	s.t.VerifyData()
 }
 
 func (s *torrentSession) Files() []string {

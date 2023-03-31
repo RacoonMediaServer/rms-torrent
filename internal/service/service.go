@@ -23,8 +23,13 @@ func (t TorrentService) Download(ctx context.Context, request *rms_torrent.Downl
 }
 
 func (t TorrentService) GetTorrentInfo(ctx context.Context, request *rms_torrent.GetTorrentInfoRequest, info *rms_torrent.TorrentInfo) error {
-	//TODO implement me
-	panic("implement me")
+	i, err := t.m.GetDownloadInfo(request.Id)
+	if err != nil {
+		logger.Errorf("Get info about '%s' failed: %s", request.Id, err)
+		return err
+	}
+	*info = *i
+	return nil
 }
 
 func (t TorrentService) GetTorrents(ctx context.Context, request *rms_torrent.GetTorrentsRequest, response *rms_torrent.GetTorrentsResponse) error {
@@ -33,13 +38,19 @@ func (t TorrentService) GetTorrents(ctx context.Context, request *rms_torrent.Ge
 }
 
 func (t TorrentService) RemoveTorrent(ctx context.Context, request *rms_torrent.RemoveTorrentRequest, empty *emptypb.Empty) error {
-	//TODO implement me
-	panic("implement me")
+	if err := t.m.RemoveDownload(request.Id); err != nil {
+		logger.Errorf("Remove torrent %s failed: %s", request.Id, err)
+		return err
+	}
+	return nil
 }
 
 func (t TorrentService) UpPriority(ctx context.Context, request *rms_torrent.UpPriorityRequest, empty *emptypb.Empty) error {
-	//TODO implement me
-	panic("implement me")
+	if err := t.m.UpDownload(request.Id); err != nil {
+		logger.Errorf("Up download %s failed: %s", request.Id, err)
+		return err
+	}
+	return nil
 }
 
 func (t TorrentService) GetSettings(ctx context.Context, empty *emptypb.Empty, settings *rms_torrent.TorrentSettings) error {

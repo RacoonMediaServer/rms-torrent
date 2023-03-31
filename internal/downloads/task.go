@@ -32,3 +32,14 @@ func (t *task) IsComplete() bool {
 	}
 	return false
 }
+
+func (t *task) Info() *rms_torrent.TorrentInfo {
+	return &rms_torrent.TorrentInfo{
+		Id:       t.id,
+		Title:    t.d.Title(),
+		Status:   t.status,
+		Progress: t.d.Progress(),
+		Estimate: 0,
+		SizeMB:   0,
+	}
+}
