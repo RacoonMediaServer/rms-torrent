@@ -3,6 +3,8 @@ package main
 import (
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
+	"github.com/RacoonMediaServer/rms-torrent/internal/db"
+	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloads"
 	tservice "github.com/RacoonMediaServer/rms-torrent/internal/service"
 	"github.com/urfave/cli/v2"
@@ -44,7 +46,19 @@ func main() {
 		_ = logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
-	manager := downloads.NewManager()
+	cfg := config.Config()
+	database, err := db.Connect(cfg.Database)
+	if err != nil {
+		logger.Fatalf("Connect to database failed: %s", err)
+	}
+
+	downloaderFactory, err := downloader.NewFactory(downloader.FactorySettings{
+		DataDirectory: cfg.Directory,
+	})
+	if err != nil {
+		logger.Fatalf("Create downloader factory failed: %s", err)
+	}
+	manager := downloads.NewManager(downloaderFactory, database)
 
 	if err := rms_torrent.RegisterRmsTorrentHandler(service.Server(), tservice.NewService(manager)); err != nil {
 		logger.Fatalf("Cannot initialize service handler: %s", err)

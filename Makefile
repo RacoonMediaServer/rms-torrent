@@ -6,13 +6,13 @@ LDFLAGS="-X main.Version=`git tag --sort=-version:refname | head -n 1`"
 all: build test
 
 build:
-	go build -ldflags ${LDFLAGS} -o ${BINARY_NAME} ${SOURCE_MAIN}
+	go build -tags libsqlite3 -ldflags ${LDFLAGS} -o ${BINARY_NAME} ${SOURCE_MAIN}
 
 test:
 	go test -v ${SOURCE_MAIN}
 
 run:
-	go build -ldflags ${LDFLAGS} -o ${BINARY_NAME} ${SOURCE_MAIN}
+	go build -tags libsqlite3 -ldflags ${LDFLAGS} -o ${BINARY_NAME} ${SOURCE_MAIN}
 	./${BINARY_NAME}
 
 clean:

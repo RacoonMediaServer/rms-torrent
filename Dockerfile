@@ -1,7 +1,7 @@
 FROM golang as builder
 WORKDIR /src/service
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Version=`git tag --sort=-version:refname | head -n 1`" -o rms-torrent -a -installsuffix cgo rms-torrent.go
+RUN CGO_ENABLED=0 GOOS=linux go build -tags libsqlite3 -ldflags "-X main.Version=`git tag --sort=-version:refname | head -n 1`" -o rms-torrent -a -installsuffix cgo rms-torrent.go
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates tzdata

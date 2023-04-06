@@ -4,63 +4,41 @@ import (
 	"bytes"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
-	"golang.org/x/time/rate"
-	"sync/atomic"
+	"github.com/anacrolix/torrent/storage"
+	"path"
 )
 
-var portCounter atomic.Int32
-
 type torrentSession struct {
-	cli   *torrent.Client
-	t     *torrent.Torrent
-	files []string
+	t *torrent.Torrent
 }
 
-func newTorrentSession(settings Settings) (Downloader, error) {
-	cfg := torrent.NewDefaultClientConfig()
-
-	portCounter.CompareAndSwap(0, int32(cfg.ListenPort))
-	cfg.ListenPort = int(portCounter.Add(1))
-	cfg.DataDir = settings.Destination
-	if settings.DownloadLimit != 0 {
-		cfg.DownloadRateLimiter = rate.NewLimiter(rate.Limit(settings.DownloadLimit), 1)
-	}
-	if settings.UploadLimit != 0 {
-		cfg.UploadRateLimiter = rate.NewLimiter(rate.Limit(settings.UploadLimit), 1)
-	}
-
-	cli, err := torrent.NewClient(cfg)
-	if err != nil {
-		return nil, err
-	}
-	var t *torrent.Torrent
-	var mi *metainfo.MetaInfo
-
-	isMagnet := isMagnetLink(settings.Input)
+func newTorrentSession(cli *torrent.Client, input []byte, p *downloaderParameters) (Downloader, error) {
+	var spec *torrent.TorrentSpec
+	isMagnet := isMagnetLink(input)
 	if !isMagnet {
-		mi, err = metainfo.Load(bytes.NewReader(settings.Input))
+		mi, err := metainfo.Load(bytes.NewReader(input))
 		if err != nil {
-			_ = cli.Close()
 			return nil, err
 		}
-		t, err = cli.AddTorrent(mi)
+		spec = torrent.TorrentSpecFromMetaInfo(mi)
 	} else {
-		t, err = cli.AddMagnet(string(settings.Input))
+		var err error
+		spec, err = torrent.TorrentSpecFromMagnetUri(string(input))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if err != nil {
-		_ = cli.Close()
-		return nil, err
+	opts := torrent.AddTorrentOpts{
+		InfoHash:  spec.InfoHash,
+		Storage:   storage.NewFile(path.Join(p.settings.DataDirectory, p.subDirectory)),
+		ChunkSize: spec.ChunkSize,
 	}
 
+	t, _ := cli.AddTorrentOpt(opts)
 	<-t.GotInfo()
 
-	s := torrentSession{
-		cli: cli,
-		t:   t,
-	}
-
-	return &s, nil
+	return &torrentSession{t: t}, nil
 }
 
 func (s *torrentSession) Start() {
@@ -96,7 +74,7 @@ func (s *torrentSession) IsComplete() bool {
 }
 
 func (s *torrentSession) Close() {
-	s.cli.Close()
+	s.t.Drop()
 }
 
 func isMagnetLink(data []byte) bool {

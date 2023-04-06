@@ -23,11 +23,16 @@ type Manager struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
+
+	f  DownloaderFactory
+	db Database
 }
 
-func NewManager() *Manager {
+func NewManager(f DownloaderFactory, db Database) *Manager {
 	m := &Manager{
 		tasks: map[string]*task{},
+		f:     f,
+		db:    db,
 	}
 
 	m.ctx, m.cancel = context.WithCancel(context.Background())
@@ -44,10 +49,7 @@ func (m *Manager) Download(content []byte, description string, faster bool) (id 
 	var d downloader.Downloader
 	id = uuid.NewV4().String()
 
-	d, err = downloader.New(downloader.Settings{
-		Input:       content,
-		Destination: path.Join(config.Config().Directory, id),
-	})
+	d, err = m.f.New(id, faster, content)
 	if err != nil {
 		return
 	}
@@ -161,4 +163,6 @@ func (m *Manager) Stop() {
 	}
 	m.cancel()
 	m.wg.Wait()
+
+	m.f.Close()
 }

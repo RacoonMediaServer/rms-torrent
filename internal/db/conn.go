@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/RacoonMediaServer/rms-torrent/internal/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -15,5 +16,11 @@ func Connect(path string) (*Database, error) {
 		return nil, err
 	}
 
+	if err = db.AutoMigrate(&settings{}); err != nil {
+		return nil, err
+	}
+	if err = db.AutoMigrate(&model.Download{}); err != nil {
+		return nil, err
+	}
 	return &Database{conn: db}, nil
 }

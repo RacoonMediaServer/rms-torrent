@@ -9,7 +9,3 @@ type Downloader interface {
 	IsComplete() bool
 	Close()
 }
-
-func New(settings Settings) (Downloader, error) {
-	return newTorrentSession(settings)
-}

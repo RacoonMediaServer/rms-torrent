@@ -5,9 +5,11 @@ import (
 	"fmt"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"go-micro.dev/v4"
+	"go-micro.dev/v4/client"
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 import "github.com/urfave/cli/v2"
 
@@ -72,7 +74,7 @@ func download(cli rms_torrent.RmsTorrentService, file string) error {
 		defer f.Close()
 	}
 
-	resp, err := cli.Download(context.Background(), &rms_torrent.DownloadRequest{What: content})
+	resp, err := cli.Download(context.Background(), &rms_torrent.DownloadRequest{What: content}, client.WithRequestTimeout(40*time.Second))
 	if err != nil {
 		return err
 	}
