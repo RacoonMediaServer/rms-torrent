@@ -6,7 +6,7 @@ import (
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
-	uuid "github.com/satori/go.uuid"
+	"github.com/RacoonMediaServer/rms-torrent/internal/model"
 	"os"
 	"path"
 	"sync"
@@ -24,15 +24,13 @@ type Manager struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 
-	f  DownloaderFactory
-	db Database
+	f DownloaderFactory
 }
 
-func NewManager(f DownloaderFactory, db Database) *Manager {
+func NewManager(f DownloaderFactory) *Manager {
 	m := &Manager{
 		tasks: map[string]*task{},
 		f:     f,
-		db:    db,
 	}
 
 	m.ctx, m.cancel = context.WithCancel(context.Background())
@@ -45,11 +43,10 @@ func NewManager(f DownloaderFactory, db Database) *Manager {
 	return m
 }
 
-func (m *Manager) Download(content []byte, description string, faster bool) (id string, files []string, err error) {
+func (m *Manager) Download(record *model.Torrent) (files []string, err error) {
 	var d downloader.Downloader
-	id = uuid.NewV4().String()
 
-	d, err = m.f.New(id, faster, content)
+	d, err = m.f.New(record.ID, record.Fast, record.Content)
 	if err != nil {
 		return
 	}
@@ -57,19 +54,19 @@ func (m *Manager) Download(content []byte, description string, faster bool) (id 
 	files = d.Files()
 
 	t := &task{
-		id: id,
+		id: record.ID,
 		d:  d,
 	}
 
 	m.mu.Lock()
-	m.tasks[id] = t
+	m.tasks[record.ID] = t
 	m.pushToQueue(t)
 	m.mu.Unlock()
 
 	return
 }
 
-func (m *Manager) GetDownloads() []*rms_torrent.TorrentInfo {
+func (m *Manager) GetTorrents() []*rms_torrent.TorrentInfo {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -81,7 +78,7 @@ func (m *Manager) GetDownloads() []*rms_torrent.TorrentInfo {
 	return result
 }
 
-func (m *Manager) GetDownloadInfo(id string) (*rms_torrent.TorrentInfo, error) {
+func (m *Manager) GetTorrentInfo(id string) (*rms_torrent.TorrentInfo, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -106,13 +103,13 @@ func (m *Manager) monitor() {
 	}
 }
 
-func (m *Manager) RemoveDownload(id string) error {
+func (m *Manager) RemoveTorrent(id string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	t, ok := m.tasks[id]
 	if !ok {
-		return errors.New("download not found")
+		return errors.New("torrent not found")
 	}
 
 	delete(m.tasks, id)
@@ -152,6 +149,10 @@ func (m *Manager) UpDownload(id string) error {
 
 	m.startNextTask()
 	return nil
+}
+
+func (m *Manager) Reset(f DownloaderFactory) {
+
 }
 
 func (m *Manager) Stop() {

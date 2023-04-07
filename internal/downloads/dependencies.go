@@ -6,6 +6,3 @@ type DownloaderFactory interface {
 	New(subDirectory string, noRateLimit bool, content []byte) (downloader.Downloader, error)
 	Close()
 }
-
-type Database interface {
-}

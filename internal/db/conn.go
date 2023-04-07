@@ -19,7 +19,7 @@ func Connect(path string) (*Database, error) {
 	if err = db.AutoMigrate(&settings{}); err != nil {
 		return nil, err
 	}
-	if err = db.AutoMigrate(&model.Download{}); err != nil {
+	if err = db.AutoMigrate(&model.Torrent{}); err != nil {
 		return nil, err
 	}
 	return &Database{conn: db}, nil
