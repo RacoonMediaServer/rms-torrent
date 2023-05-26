@@ -7,6 +7,7 @@ import (
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
 	"github.com/RacoonMediaServer/rms-torrent/internal/model"
+	"go-micro.dev/v4/logger"
 	"os"
 	"path"
 	"sync"
@@ -25,6 +26,8 @@ type Manager struct {
 	wg     sync.WaitGroup
 
 	f DownloaderFactory
+
+	OnDownloadComplete func(ctx context.Context, t *model.Torrent)
 }
 
 func NewManager(f DownloaderFactory) *Manager {
@@ -33,12 +36,7 @@ func NewManager(f DownloaderFactory) *Manager {
 		f:     f,
 	}
 
-	m.ctx, m.cancel = context.WithCancel(context.Background())
-	m.wg.Add(1)
-	go func() {
-		defer m.wg.Done()
-		m.monitor()
-	}()
+	m.startMonitor()
 
 	return m
 }
@@ -46,7 +44,7 @@ func NewManager(f DownloaderFactory) *Manager {
 func (m *Manager) Download(record *model.Torrent) (files []string, err error) {
 	var d downloader.Downloader
 
-	d, err = m.f.New(record.ID, record.Fast, record.Content)
+	d, err = m.f.New(record)
 	if err != nil {
 		return
 	}
@@ -54,13 +52,18 @@ func (m *Manager) Download(record *model.Torrent) (files []string, err error) {
 	files = d.Files()
 
 	t := &task{
-		id: record.ID,
-		d:  d,
+		t: record,
+		d: d,
+	}
+	if record.Complete {
+		t.status = rms_torrent.Status_Done
 	}
 
 	m.mu.Lock()
 	m.tasks[record.ID] = t
-	m.pushToQueue(t)
+	if !record.Complete {
+		m.pushToQueue(t)
+	}
 	m.mu.Unlock()
 
 	return
@@ -87,20 +90,6 @@ func (m *Manager) GetTorrentInfo(id string) (*rms_torrent.TorrentInfo, error) {
 		return nil, errors.New("task not found")
 	}
 	return t.Info(), nil
-}
-
-func (m *Manager) monitor() {
-
-	for {
-		select {
-		case <-m.ctx.Done():
-			return
-		case <-time.After(checkCompleteInterval):
-			m.mu.Lock()
-			m.checkTaskIsComplete()
-			m.mu.Unlock()
-		}
-	}
 }
 
 func (m *Manager) RemoveTorrent(id string) error {
@@ -152,7 +141,23 @@ func (m *Manager) UpDownload(id string) error {
 }
 
 func (m *Manager) Reset(f DownloaderFactory) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
+	m.stopMonitor()
+
+	var err error
+	for _, t := range m.tasks {
+		t.d.Close()
+		t.d, err = f.New(t.t)
+		if err != nil {
+			logger.Errorf("[%s] Cannot reset task '%s': %s", t.t.ID, t.t.Description, err)
+		}
+	}
+	m.f.Close()
+
+	m.f = f
+	m.startMonitor()
 }
 
 func (m *Manager) Stop() {

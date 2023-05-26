@@ -14,6 +14,9 @@ func (d *Database) AddTorrent(record *model.Torrent) error {
 	return d.conn.Create(record).Error
 }
 
+func (d *Database) CompleteTorrent(id string) error {
+	return d.conn.Model(&model.Torrent{ID: id}).Update("complete", true).Error
+}
 func (d *Database) UpdateTorrent(record *model.Torrent) error {
 	return d.conn.Save(record).Error
 }

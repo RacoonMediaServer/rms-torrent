@@ -3,22 +3,29 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloads"
 	"github.com/RacoonMediaServer/rms-torrent/internal/model"
 	uuid "github.com/satori/go.uuid"
+	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"time"
 )
 
 type TorrentService struct {
-	db Database
-	m  *downloads.Manager
+	db  Database
+	m   *downloads.Manager
+	pub micro.Event
 }
 
-func NewService(db Database) *TorrentService {
+const publishTimeout = 10 * time.Second
+
+func NewService(db Database, pub micro.Event) *TorrentService {
 	return &TorrentService{
-		db: db,
+		db:  db,
+		pub: pub,
 	}
 }
 
@@ -39,6 +46,16 @@ func (t *TorrentService) Initialize() error {
 	}
 
 	t.m = downloads.NewManager(f)
+	t.m.OnDownloadComplete = func(ctx context.Context, tm *model.Torrent) {
+		if err := t.db.CompleteTorrent(tm.ID); err != nil {
+			logger.Warnf("Update torrent status %s in database failed: %s", tm.ID, err)
+		}
+		t.publish(ctx, &events.Notification{
+			Kind:      events.Notification_DownloadComplete,
+			TorrentID: &tm.ID,
+			ItemTitle: &tm.Description,
+		})
+	}
 
 	for _, torrent := range torrents {
 		_, err = t.m.Download(torrent)
@@ -103,7 +120,7 @@ func (t *TorrentService) RemoveTorrent(ctx context.Context, request *rms_torrent
 
 func (t *TorrentService) UpPriority(ctx context.Context, request *rms_torrent.UpPriorityRequest, empty *emptypb.Empty) error {
 	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (t *TorrentService) GetSettings(ctx context.Context, empty *emptypb.Empty, settings *rms_torrent.TorrentSettings) error {
@@ -132,4 +149,13 @@ func (t *TorrentService) SetSettings(ctx context.Context, settings *rms_torrent.
 
 	t.m.Reset(f)
 	return nil
+}
+
+func (t *TorrentService) publish(ctx context.Context, event *events.Notification) {
+	ctx, cancel := context.WithTimeout(ctx, publishTimeout)
+	defer cancel()
+
+	if err := t.pub.Publish(ctx, event); err != nil {
+		logger.Warnf("Publish notification failed: %s", err)
+	}
 }

@@ -12,18 +12,18 @@ type torrentSession struct {
 	t *torrent.Torrent
 }
 
-func newTorrentSession(cli *torrent.Client, input []byte, p *downloaderParameters) (Downloader, error) {
+func newTorrentSession(cli *torrent.Client, p *downloaderParameters) (Downloader, error) {
 	var spec *torrent.TorrentSpec
-	isMagnet := isMagnetLink(input)
+	isMagnet := isMagnetLink(p.t.Content)
 	if !isMagnet {
-		mi, err := metainfo.Load(bytes.NewReader(input))
+		mi, err := metainfo.Load(bytes.NewReader(p.t.Content))
 		if err != nil {
 			return nil, err
 		}
 		spec = torrent.TorrentSpecFromMetaInfo(mi)
 	} else {
 		var err error
-		spec, err = torrent.TorrentSpecFromMagnetUri(string(input))
+		spec, err = torrent.TorrentSpecFromMagnetUri(string(p.t.Content))
 		if err != nil {
 			return nil, err
 		}
@@ -31,12 +31,14 @@ func newTorrentSession(cli *torrent.Client, input []byte, p *downloaderParameter
 
 	opts := torrent.AddTorrentOpts{
 		InfoHash:  spec.InfoHash,
-		Storage:   storage.NewFile(path.Join(p.settings.DataDirectory, p.subDirectory)),
+		Storage:   storage.NewFile(path.Join(p.settings.DataDirectory, p.t.ID)),
 		ChunkSize: spec.ChunkSize,
 	}
 
 	t, _ := cli.AddTorrentOpt(opts)
 	<-t.GotInfo()
+
+	t.AllowDataUpload()
 
 	return &torrentSession{t: t}, nil
 }

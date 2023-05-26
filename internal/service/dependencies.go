@@ -11,4 +11,5 @@ type Database interface {
 	AddTorrent(record *model.Torrent) error
 	RemoveTorrent(id string) error
 	SaveSettings(val *rms_torrent.TorrentSettings) error
+	CompleteTorrent(id string) error
 }

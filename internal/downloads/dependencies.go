@@ -1,8 +1,11 @@
 package downloads
 
-import "github.com/RacoonMediaServer/rms-torrent/internal/downloader"
+import (
+	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
+	"github.com/RacoonMediaServer/rms-torrent/internal/model"
+)
 
 type DownloaderFactory interface {
-	New(subDirectory string, noRateLimit bool, content []byte) (downloader.Downloader, error)
+	New(t *model.Torrent) (downloader.Downloader, error)
 	Close()
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/RacoonMediaServer/rms-torrent/internal/db"
@@ -50,7 +51,7 @@ func main() {
 		logger.Fatalf("Connect to database failed: %s", err)
 	}
 
-	tService := tservice.NewService(database)
+	tService := tservice.NewService(database, pubsub.NewPublisher(service))
 
 	if err = tService.Initialize(); err != nil {
 		logger.Fatalf("Initialize service failed: %s", err)

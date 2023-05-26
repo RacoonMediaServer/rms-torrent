@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"fmt"
+	"github.com/RacoonMediaServer/rms-torrent/internal/model"
 	"github.com/anacrolix/torrent"
 	"golang.org/x/time/rate"
 )
@@ -10,12 +11,12 @@ import (
 type Factory struct {
 	settings FactorySettings
 	cli      *torrent.Client
+	fastCli  *torrent.Client
 }
 
 type downloaderParameters struct {
-	settings     FactorySettings
-	subDirectory string
-	noRateLimit  bool
+	settings FactorySettings
+	t        *model.Torrent
 }
 
 // FactorySettings are parameters for constructing Downloader's
@@ -43,18 +44,34 @@ func NewFactory(settings FactorySettings) (*Factory, error) {
 	}
 	f.cli = cli
 
+	cfg = torrent.NewDefaultClientConfig()
+	cfg.DataDir = settings.DataDirectory
+	if settings.UploadLimit != 0 {
+		cfg.UploadRateLimiter = rate.NewLimiter(rate.Limit(settings.UploadLimit), 1)
+	}
+	cfg.ListenPort += 1
+	cli, err = torrent.NewClient(cfg)
+	if err != nil {
+		f.cli.Close()
+		return nil, fmt.Errorf("create torrent client failed: %w", err)
+	}
+	f.fastCli = cli
+
 	return &f, nil
 }
 
-func (f Factory) New(subDirectory string, noRateLimit bool, content []byte) (Downloader, error) {
+func (f Factory) New(t *model.Torrent) (Downloader, error) {
 	p := downloaderParameters{
-		settings:     f.settings,
-		subDirectory: subDirectory,
-		noRateLimit:  noRateLimit,
+		settings: f.settings,
+		t:        t,
 	}
-	return newTorrentSession(f.cli, content, &p)
+	if t.Fast && !t.Complete {
+		return newTorrentSession(f.fastCli, &p)
+	}
+	return newTorrentSession(f.cli, &p)
 }
 
 func (f Factory) Close() {
 	f.cli.Close()
+	f.fastCli.Close()
 }
