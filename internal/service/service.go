@@ -119,7 +119,10 @@ func (t *TorrentService) RemoveTorrent(ctx context.Context, request *rms_torrent
 }
 
 func (t *TorrentService) UpPriority(ctx context.Context, request *rms_torrent.UpPriorityRequest, empty *emptypb.Empty) error {
-	//TODO implement me
+	if err := t.m.UpDownload(request.Id); err != nil {
+		logger.Errorf("Up priority for %s failed: %s", request.Id, err)
+		return err
+	}
 	return nil
 }
 

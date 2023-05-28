@@ -7,5 +7,6 @@ type Downloader interface {
 	Stop()
 	Progress() float32
 	IsComplete() bool
+	SizeMB() uint64
 	Close()
 }

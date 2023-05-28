@@ -53,6 +53,7 @@ func (s *torrentSession) Files() []string {
 	for _, f := range files {
 		result = append(result, f.Path())
 	}
+	s.t.Info().TotalLength()
 
 	return result
 }
@@ -85,4 +86,12 @@ func isMagnetLink(data []byte) bool {
 		return false
 	}
 	return string(data[:len(magnetLinkSign)]) == magnetLinkSign
+}
+
+func (s *torrentSession) SizeMB() uint64 {
+	var size uint64
+	for i := range s.t.Files() {
+		size += uint64(s.t.Files()[i].Length())
+	}
+	return size / (1024. * 1024.)
 }

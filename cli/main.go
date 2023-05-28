@@ -74,7 +74,12 @@ func download(cli rms_torrent.RmsTorrentService, file string) error {
 		defer f.Close()
 	}
 
-	resp, err := cli.Download(context.Background(), &rms_torrent.DownloadRequest{What: content}, client.WithRequestTimeout(40*time.Second))
+	req := rms_torrent.DownloadRequest{
+		What:        content,
+		Description: "Test download",
+		Faster:      false,
+	}
+	resp, err := cli.Download(context.Background(), &req, client.WithRequestTimeout(40*time.Second))
 	if err != nil {
 		return err
 	}
@@ -89,7 +94,7 @@ func list(cli rms_torrent.RmsTorrentService) error {
 		return err
 	}
 	for _, t := range result.Torrents {
-		fmt.Println(t.Id, t.Title, t.Status, t.Progress, t.Estimate)
+		fmt.Println(t.Id, t.Title, t.Status, t.Progress, t.Estimate, t.SizeMB)
 	}
 	return nil
 }

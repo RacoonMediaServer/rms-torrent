@@ -41,6 +41,6 @@ func (t *task) Info() *rms_torrent.TorrentInfo {
 		Status:   t.status,
 		Progress: t.d.Progress(),
 		Estimate: 0,
-		SizeMB:   0,
+		SizeMB:   t.d.SizeMB(),
 	}
 }
