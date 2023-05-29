@@ -3,6 +3,8 @@ package downloads
 import (
 	"context"
 	"errors"
+	"fmt"
+	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
@@ -28,6 +30,7 @@ type Manager struct {
 	f DownloaderFactory
 
 	OnDownloadComplete func(ctx context.Context, t *model.Torrent)
+	OnMalfunction      func(text string, code events.Malfunction_Code)
 }
 
 func NewManager(f DownloaderFactory) *Manager {
@@ -151,10 +154,16 @@ func (m *Manager) Reset(f DownloaderFactory) {
 		t.d.Close()
 		t.d, err = f.New(t.t)
 		if err != nil {
-			logger.Errorf("[%s] Cannot reset task '%s': %s", t.t.ID, t.t.Description, err)
+			errorString := fmt.Sprintf("[%s] Cannot restart downloading task '%s': %s", t.t.ID, t.t.Description, err)
+			logger.Error(errorString)
+			if m.OnMalfunction != nil {
+				m.OnMalfunction(errorString, events.Malfunction_Unknown)
+			}
 		}
 	}
 	m.f.Close()
+
+	//TODO: restart queue
 
 	m.f = f
 	m.startMonitor()

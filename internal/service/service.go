@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/RacoonMediaServer/rms-packages/pkg/events"
+	"github.com/RacoonMediaServer/rms-packages/pkg/misc"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloads"
 	"github.com/RacoonMediaServer/rms-torrent/internal/model"
@@ -54,6 +55,15 @@ func (t *TorrentService) Initialize() error {
 			Kind:      events.Notification_DownloadComplete,
 			TorrentID: &tm.ID,
 			ItemTitle: &tm.Description,
+		})
+	}
+	t.m.OnMalfunction = func(text string, code events.Malfunction_Code) {
+		t.publish(context.Background(), &events.Malfunction{
+			Timestamp:  time.Now().Unix(),
+			Error:      text,
+			System:     events.Malfunction_Media,
+			Code:       code,
+			StackTrace: misc.GetStackTrace(),
 		})
 	}
 
@@ -154,7 +164,7 @@ func (t *TorrentService) SetSettings(ctx context.Context, settings *rms_torrent.
 	return nil
 }
 
-func (t *TorrentService) publish(ctx context.Context, event *events.Notification) {
+func (t *TorrentService) publish(ctx context.Context, event interface{}) {
 	ctx, cancel := context.WithTimeout(ctx, publishTimeout)
 	defer cancel()
 
