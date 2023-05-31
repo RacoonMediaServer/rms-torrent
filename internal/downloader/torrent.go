@@ -36,6 +36,10 @@ func newTorrentSession(cli *torrent.Client, p *downloaderParameters) (Downloader
 	}
 
 	t, _ := cli.AddTorrentOpt(opts)
+	if err := t.MergeSpec(spec); err != nil {
+		t.Drop()
+		return nil, err
+	}
 	<-t.GotInfo()
 
 	t.AllowDataUpload()
