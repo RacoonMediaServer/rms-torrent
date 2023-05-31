@@ -117,7 +117,10 @@ func (m *Manager) RemoveTorrent(id string) error {
 func (m *Manager) UpDownload(id string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	return m.upDownload(id)
+}
 
+func (m *Manager) upDownload(id string) error {
 	found := -1
 	for i := 0; i < len(m.queue) && found == -1; i++ {
 		if m.queue[i] == id {

@@ -2,6 +2,7 @@ package downloads
 
 import (
 	"context"
+	"go-micro.dev/v4/logger"
 	"time"
 )
 
@@ -36,6 +37,12 @@ func (m *Manager) checkTaskStatus() {
 	t := m.tasks[m.queue[0]]
 	if !t.CheckComplete() {
 		t.CalcRemaining()
+		if t.IsHang() {
+			logger.Warnf("[%s] download task is hung ('%s')", t.t.ID, t.d.Title())
+			if len(m.queue) > 1 {
+				_ = m.upDownload(m.queue[1])
+			}
+		}
 	} else {
 		if m.OnDownloadComplete != nil {
 			m.OnDownloadComplete(m.ctx, t.t)

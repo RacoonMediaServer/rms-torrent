@@ -17,7 +17,10 @@ type task struct {
 	measures      []uint64
 	measure       int
 	remainingTime time.Duration
+	hangCnt       int
 }
+
+const hungDecisionSeconds = 60
 
 func (t *task) Start() {
 	logger.Infof("[%s] Start downloading '%s'", t.t.ID, t.d.Title())
@@ -29,9 +32,7 @@ func (t *task) Start() {
 func (t *task) Stop() {
 	logger.Infof("[%s] Stopping downloading '%s'", t.t.ID, t.d.Title())
 	t.d.Stop()
-	t.status = rms_torrent.Status_Pending
-	t.measure = 0
-	t.measures = nil
+	t.resetState()
 }
 
 func (t *task) CheckComplete() bool {
@@ -61,6 +62,11 @@ func (t *task) CalcRemaining() {
 
 	totalBytes := t.d.Bytes()
 	bytes := totalBytes - t.lastBytes
+	if bytes == 0 {
+		t.hangCnt++
+	} else {
+		t.hangCnt = 0
+	}
 	if len(t.measures) >= MaxMeasures {
 		t.measures[t.measure] = bytes
 		t.measure++
@@ -75,10 +81,20 @@ func (t *task) CalcRemaining() {
 	t.remainingTime = time.Duration(float64(t.d.RemainingBytes())/speed) * time.Second
 }
 
+func (t *task) IsHang() bool {
+	return t.hangCnt >= hungDecisionSeconds
+}
+
 func (t *task) progress() float32 {
 	completed := float64(t.d.Bytes())
 	left := float64(t.d.RemainingBytes())
 	return float32(completed/(completed+left)) * 100
+}
+
+func (t *task) resetState() {
+	t.lastBytes = 0
+	t.measures = nil
+	t.measure = 0
 }
 
 func (t *task) Info() *rms_torrent.TorrentInfo {
@@ -94,7 +110,5 @@ func (t *task) Info() *rms_torrent.TorrentInfo {
 
 func (t *task) Close() {
 	t.d.Close()
-	t.lastBytes = 0
-	t.measures = nil
-	t.measure = 0
+	t.resetState()
 }
