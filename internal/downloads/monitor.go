@@ -22,9 +22,26 @@ func (m *Manager) monitor() {
 			return
 		case <-time.After(checkCompleteInterval):
 			m.mu.Lock()
-			m.checkTaskIsComplete()
+			m.checkTaskStatus()
 			m.mu.Unlock()
 		}
+	}
+}
+
+func (m *Manager) checkTaskStatus() {
+	if len(m.queue) == 0 {
+		return
+	}
+
+	t := m.tasks[m.queue[0]]
+	if !t.CheckComplete() {
+		t.CalcRemaining()
+	} else {
+		if m.OnDownloadComplete != nil {
+			m.OnDownloadComplete(m.ctx, t.t)
+		}
+		m.queue = m.queue[1:]
+		m.startNextTask()
 	}
 }
 

@@ -151,7 +151,7 @@ func (m *Manager) Reset(f DownloaderFactory) {
 
 	var err error
 	for _, t := range m.tasks {
-		t.d.Close()
+		t.Close()
 		t.d, err = f.New(t.t)
 		if err != nil {
 			errorString := fmt.Sprintf("[%s] Cannot restart downloading task '%s': %s", t.t.ID, t.t.Description, err)

@@ -94,7 +94,7 @@ func list(cli rms_torrent.RmsTorrentService) error {
 		return err
 	}
 	for _, t := range result.Torrents {
-		fmt.Println(t.Id, t.Title, t.Status, t.Progress, t.Estimate, t.SizeMB)
+		fmt.Println(t.Id, t.Title, t.Status, t.Progress, t.RemainingTime, t.SizeMB)
 	}
 	return nil
 }

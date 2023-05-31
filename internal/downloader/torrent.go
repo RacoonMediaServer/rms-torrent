@@ -66,10 +66,12 @@ func (s *torrentSession) Title() string {
 	return s.t.Info().Name
 }
 
-func (s *torrentSession) Progress() float32 {
-	completed := float64(s.t.BytesCompleted())
-	left := float64(s.t.BytesMissing())
-	return float32(completed/(completed+left)) * 100
+func (s *torrentSession) Bytes() uint64 {
+	return uint64(s.t.BytesCompleted())
+}
+
+func (s *torrentSession) RemainingBytes() uint64 {
+	return uint64(s.t.BytesMissing())
 }
 
 func (s *torrentSession) IsComplete() bool {

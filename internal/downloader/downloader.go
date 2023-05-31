@@ -5,7 +5,8 @@ type Downloader interface {
 	Files() []string
 	Title() string
 	Stop()
-	Progress() float32
+	Bytes() uint64
+	RemainingBytes() uint64
 	IsComplete() bool
 	SizeMB() uint64
 	Close()

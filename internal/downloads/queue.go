@@ -12,21 +12,6 @@ func (m *Manager) pushToQueue(t *task) {
 	}
 }
 
-func (m *Manager) checkTaskIsComplete() {
-	if len(m.queue) == 0 {
-		return
-	}
-
-	t := m.tasks[m.queue[0]]
-	if t.CheckComplete() {
-		if m.OnDownloadComplete != nil {
-			m.OnDownloadComplete(m.ctx, t.t)
-		}
-		m.queue = m.queue[1:]
-		m.startNextTask()
-	}
-}
-
 func (m *Manager) startNextTask() {
 	if len(m.queue) != 0 {
 		m.tasks[m.queue[0]].Start()
