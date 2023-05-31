@@ -8,6 +8,7 @@ import (
 	"go-micro.dev/v4/client"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -21,7 +22,7 @@ func main() {
 		micro.Flags(
 			&cli.StringFlag{
 				Name:        "command",
-				Usage:       "Must be one of: download, list, remove, up",
+				Usage:       "Must be one of: download, list, remove, up, apply",
 				Required:    true,
 				Destination: &command,
 			},
@@ -52,6 +53,10 @@ func main() {
 		}
 	case "up":
 		if err := up(client, item); err != nil {
+			panic(err)
+		}
+	case "apply":
+		if err := apply(client, item); err != nil {
 			panic(err)
 		}
 	default:
@@ -94,7 +99,7 @@ func list(cli rms_torrent.RmsTorrentService) error {
 		return err
 	}
 	for _, t := range result.Torrents {
-		fmt.Println(t.Id, t.Title, t.Status, t.Progress, t.RemainingTime, t.SizeMB)
+		fmt.Println(t.Id, t.Title, t.Status, t.Progress, time.Duration(t.RemainingTime), t.SizeMB)
 	}
 	return nil
 }
@@ -106,5 +111,18 @@ func remove(cli rms_torrent.RmsTorrentService, id string) error {
 
 func up(cli rms_torrent.RmsTorrentService, id string) error {
 	_, err := cli.UpPriority(context.Background(), &rms_torrent.UpPriorityRequest{Id: id})
+	return err
+}
+
+func apply(cli rms_torrent.RmsTorrentService, downloadLimit string) error {
+	limit, err := strconv.ParseUint(downloadLimit, 10, 64)
+	if err != nil {
+		return err
+	}
+	settings := &rms_torrent.TorrentSettings{
+		DownloadLimit: limit,
+		UploadLimit:   0,
+	}
+	_, err = cli.SetSettings(context.Background(), settings)
 	return err
 }

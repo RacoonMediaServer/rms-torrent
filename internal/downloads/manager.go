@@ -150,25 +150,20 @@ func (m *Manager) Reset(f DownloaderFactory) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.stopMonitor()
-
+	m.f = f
 	var err error
 	for _, t := range m.tasks {
-		t.Close()
-		t.d, err = f.New(t.t)
+		t.d, err = m.f.New(t.t)
 		if err != nil {
 			errorString := fmt.Sprintf("[%s] Cannot restart downloading task '%s': %s", t.t.ID, t.t.Description, err)
 			logger.Error(errorString)
 			if m.OnMalfunction != nil {
-				m.OnMalfunction(errorString, events.Malfunction_Unknown)
+				m.OnMalfunction(errorString, events.Malfunction_ActionFailed)
 			}
 		}
 	}
-	m.f.Close()
 
-	//TODO: restart queue
-
-	m.f = f
+	m.startNextTask()
 	m.startMonitor()
 }
 
@@ -176,11 +171,11 @@ func (m *Manager) Stop() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	m.stopMonitor()
+
 	for _, t := range m.tasks {
-		t.d.Close()
+		t.Close()
 	}
-	m.cancel()
-	m.wg.Wait()
 
 	m.f.Close()
 }

@@ -150,13 +150,16 @@ func (t *TorrentService) GetSettings(ctx context.Context, empty *emptypb.Empty, 
 }
 
 func (t *TorrentService) SetSettings(ctx context.Context, settings *rms_torrent.TorrentSettings, empty *emptypb.Empty) error {
-	f, err := newFactory(settings)
-	if err != nil {
-		logger.Errorf("Create download factory failed: %s", err)
+	if err := t.db.SaveSettings(settings); err != nil {
+		logger.Errorf("Save settings failed: %s", err)
 		return err
 	}
-	if err = t.db.SaveSettings(settings); err != nil {
-		logger.Errorf("Save settings failed: %s", err)
+
+	t.m.Stop()
+
+	f, err := newFactory(settings)
+	if err != nil {
+		logger.Fatalf("Cannot recreate downloader factory: %s", err)
 		return err
 	}
 
