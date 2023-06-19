@@ -56,12 +56,8 @@ github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87/go.mod h1:i
 github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
 github.com/ProtonMail/go-crypto v0.0.0-20220517143526-88bb52951d5b h1:lcbBNuQhppsc7A5gjdHmdlqUqJfgGMylBdGyDs0j7G8=
 github.com/ProtonMail/go-crypto v0.0.0-20220517143526-88bb52951d5b/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
-github.com/RacoonMediaServer/rms-packages v1.8.6 h1:dYliay9qWrLIBsKruhcS2fBlGWXczhkFUw76QC1oF9Q=
-github.com/RacoonMediaServer/rms-packages v1.8.6/go.mod h1:WvLl0QLSz8rmeqBi3E+kPk+xxykb1SQEFsfVkv00iSI=
-github.com/RacoonMediaServer/rms-packages v1.8.8 h1:2dQSTap5hq/NtZ387wZM7WQsViKjzejeRVMsBLNG8SE=
-github.com/RacoonMediaServer/rms-packages v1.8.8/go.mod h1:WvLl0QLSz8rmeqBi3E+kPk+xxykb1SQEFsfVkv00iSI=
-github.com/RacoonMediaServer/rms-packages v1.8.9 h1:d+6mzIFwkoG5TDf04U2mH/+AEz2XkqM7z750MSWcrw4=
-github.com/RacoonMediaServer/rms-packages v1.8.9/go.mod h1:WvLl0QLSz8rmeqBi3E+kPk+xxykb1SQEFsfVkv00iSI=
+github.com/RacoonMediaServer/rms-packages v1.8.11 h1:dOKLq3ByrKxQQRQT+LL4uj7ayAdCCjOfGqjCjmnQmXo=
+github.com/RacoonMediaServer/rms-packages v1.8.11/go.mod h1:WvLl0QLSz8rmeqBi3E+kPk+xxykb1SQEFsfVkv00iSI=
 github.com/RoaringBitmap/roaring v0.4.7/go.mod h1:8khRDP4HmeXns4xIj9oGrKSz7XTQiJx2zgh7AcNke4w=
 github.com/RoaringBitmap/roaring v0.4.17/go.mod h1:D3qVegWTmfCaX4Bl5CrBE9hfrSrrXIr8KVNvRsDi1NI=
 github.com/RoaringBitmap/roaring v0.4.23/go.mod h1:D0gp8kJQgE1A4LQ5wFLggQEyvDi06Mq5mKs52e1TwOo=
