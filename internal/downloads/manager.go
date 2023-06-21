@@ -72,12 +72,16 @@ func (m *Manager) Download(record *model.Torrent) (files []string, err error) {
 	return
 }
 
-func (m *Manager) GetTorrents() []*rms_torrent.TorrentInfo {
+func (m *Manager) GetTorrents(includeDone bool) []*rms_torrent.TorrentInfo {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	result := make([]*rms_torrent.TorrentInfo, 0, len(m.tasks))
 	for _, t := range m.tasks {
+		info := t.Info()
+		if info.Status == rms_torrent.Status_Done && !includeDone {
+			continue
+		}
 		result = append(result, t.Info())
 	}
 

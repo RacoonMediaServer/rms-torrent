@@ -112,7 +112,7 @@ func (t *TorrentService) GetTorrentInfo(ctx context.Context, request *rms_torren
 }
 
 func (t *TorrentService) GetTorrents(ctx context.Context, request *rms_torrent.GetTorrentsRequest, response *rms_torrent.GetTorrentsResponse) error {
-	response.Torrents = t.m.GetTorrents()
+	response.Torrents = t.m.GetTorrents(request.IncludeDoneTorrents)
 	return nil
 }
 
