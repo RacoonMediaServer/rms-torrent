@@ -3,7 +3,7 @@ module github.com/RacoonMediaServer/rms-torrent
 go 1.18
 
 require (
-	github.com/RacoonMediaServer/rms-packages v1.8.11
+	github.com/RacoonMediaServer/rms-packages v1.9.2
 	github.com/anacrolix/torrent v1.49.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/urfave/cli/v2 v2.10.2
