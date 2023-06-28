@@ -29,7 +29,7 @@ type Manager struct {
 
 	f DownloaderFactory
 
-	OnDownloadComplete func(ctx context.Context, t *model.Torrent)
+	OnDownloadComplete func(ctx context.Context, torrentTitle string, t *model.Torrent)
 	OnMalfunction      func(text string, code events.Malfunction_Code)
 }
 

@@ -47,14 +47,18 @@ func (t *TorrentService) Initialize() error {
 	}
 
 	t.m = downloads.NewManager(f)
-	t.m.OnDownloadComplete = func(ctx context.Context, tm *model.Torrent) {
+	t.m.OnDownloadComplete = func(ctx context.Context, torrentTitle string, tm *model.Torrent) {
 		if err := t.db.CompleteTorrent(tm.ID); err != nil {
 			logger.Warnf("Update torrent status %s in database failed: %s", tm.ID, err)
+		}
+		description := torrentTitle
+		if tm.Description != "" {
+			description = fmt.Sprintf("%s (%s)", tm.Description, torrentTitle)
 		}
 		t.publish(ctx, &events.Notification{
 			Kind:      events.Notification_DownloadComplete,
 			TorrentID: &tm.ID,
-			ItemTitle: &tm.Description,
+			ItemTitle: &description,
 		})
 	}
 	t.m.OnMalfunction = func(text string, code events.Malfunction_Code) {

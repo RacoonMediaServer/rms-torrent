@@ -45,7 +45,7 @@ func (m *Manager) checkTaskStatus() {
 		}
 	} else {
 		if m.OnDownloadComplete != nil {
-			m.OnDownloadComplete(m.ctx, t.t)
+			m.OnDownloadComplete(m.ctx, t.Info().Title, t.t)
 		}
 		m.queue = m.queue[1:]
 		m.startNextTask()
