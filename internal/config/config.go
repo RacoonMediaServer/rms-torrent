@@ -4,7 +4,7 @@ import "github.com/RacoonMediaServer/rms-packages/pkg/configuration"
 
 type Configuration struct {
 	Directory string
-	Database  string
+	Database  configuration.Database
 }
 
 var config Configuration

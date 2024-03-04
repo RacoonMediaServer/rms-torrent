@@ -1,4 +1,10 @@
 {
   "directory": "/media/library/torrents",
-  "database": "torrents.db"
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "rms",
+    "password": "rms",
+    "database": "rms"
+  }
 }
