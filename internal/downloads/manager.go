@@ -27,13 +27,13 @@ type Manager struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 
-	f DownloaderFactory
+	f downloader.Factory
 
 	OnDownloadComplete func(ctx context.Context, torrentTitle string, t *model.Torrent)
 	OnMalfunction      func(text string, code events.Malfunction_Code)
 }
 
-func NewManager(f DownloaderFactory) *Manager {
+func NewManager(f downloader.Factory) *Manager {
 	m := &Manager{
 		tasks: map[string]*task{},
 		f:     f,
@@ -150,7 +150,7 @@ func (m *Manager) upDownload(id string) error {
 	return nil
 }
 
-func (m *Manager) Reset(f DownloaderFactory) {
+func (m *Manager) Reset(f downloader.Factory) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

@@ -8,7 +8,8 @@
     "database": "rms"
   },
   "fuse": {
-    "enabled": false,
+    "enabled": true,
+    "cache-directory": "/media/cache",
     "limit": 5
   }
 }

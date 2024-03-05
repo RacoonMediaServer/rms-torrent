@@ -8,11 +8,11 @@ import (
 	"path"
 )
 
-type torrentSession struct {
+type offlineDownloader struct {
 	t *torrent.Torrent
 }
 
-func newTorrentSession(cli *torrent.Client, p *downloaderParameters) (Downloader, error) {
+func newOfflineDownloader(cli *torrent.Client, p *downloaderParameters) (Downloader, error) {
 	var spec *torrent.TorrentSpec
 	isMagnet := isMagnetLink(p.t.Content)
 	if !isMagnet {
@@ -44,46 +44,46 @@ func newTorrentSession(cli *torrent.Client, p *downloaderParameters) (Downloader
 
 	t.AllowDataUpload()
 
-	return &torrentSession{t: t}, nil
+	return &offlineDownloader{t: t}, nil
 }
 
-func (s *torrentSession) Start() {
-	s.t.DownloadAll()
+func (d *offlineDownloader) Start() {
+	d.t.DownloadAll()
 }
 
-func (s *torrentSession) Files() []string {
-	files := s.t.Files()
+func (d *offlineDownloader) Files() []string {
+	files := d.t.Files()
 	result := make([]string, 0, len(files))
 	for _, f := range files {
 		result = append(result, f.Path())
 	}
-	s.t.Info().TotalLength()
+	d.t.Info().TotalLength()
 
 	return result
 }
 
-func (s *torrentSession) Stop() {
-	s.t.CancelPieces(0, s.t.NumPieces())
+func (d *offlineDownloader) Stop() {
+	d.t.CancelPieces(0, d.t.NumPieces())
 }
 
-func (s *torrentSession) Title() string {
-	return s.t.Info().Name
+func (d *offlineDownloader) Title() string {
+	return d.t.Info().Name
 }
 
-func (s *torrentSession) Bytes() uint64 {
-	return uint64(s.t.BytesCompleted())
+func (d *offlineDownloader) Bytes() uint64 {
+	return uint64(d.t.BytesCompleted())
 }
 
-func (s *torrentSession) RemainingBytes() uint64 {
-	return uint64(s.t.BytesMissing())
+func (d *offlineDownloader) RemainingBytes() uint64 {
+	return uint64(d.t.BytesMissing())
 }
 
-func (s *torrentSession) IsComplete() bool {
-	return s.t.Complete.Bool()
+func (d *offlineDownloader) IsComplete() bool {
+	return d.t.Complete.Bool()
 }
 
-func (s *torrentSession) Close() {
-	s.t.Drop()
+func (d *offlineDownloader) Close() {
+	d.t.Drop()
 }
 
 func isMagnetLink(data []byte) bool {
@@ -94,10 +94,10 @@ func isMagnetLink(data []byte) bool {
 	return string(data[:len(magnetLinkSign)]) == magnetLinkSign
 }
 
-func (s *torrentSession) SizeMB() uint64 {
+func (d *offlineDownloader) SizeMB() uint64 {
 	var size uint64
-	for i := range s.t.Files() {
-		size += uint64(s.t.Files()[i].Length())
+	for i := range d.t.Files() {
+		size += uint64(d.t.Files()[i].Length())
 	}
 	return size / (1024. * 1024.)
 }

@@ -3,8 +3,9 @@ package config
 import "github.com/RacoonMediaServer/rms-packages/pkg/configuration"
 
 type Fuse struct {
-	Enabled bool
-	Limit   uint
+	Enabled        bool
+	CacheDirectory string `json:"cache-directory"`
+	Limit          uint
 }
 
 type Configuration struct {

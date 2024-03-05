@@ -6,9 +6,10 @@ import (
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloader"
 )
 
-func newFactory(settings *rms_torrent.TorrentSettings) (*downloader.Factory, error) {
+func newFactory(settings *rms_torrent.TorrentSettings) (downloader.Factory, error) {
+	cfg := config.Config()
 	return downloader.NewFactory(downloader.FactorySettings{
-		DataDirectory: config.Config().Directory,
+		DataDirectory: cfg.Directory,
 		UploadLimit:   settings.UploadLimit,
 		DownloadLimit: settings.DownloadLimit,
 	})
