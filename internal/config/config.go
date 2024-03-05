@@ -2,9 +2,15 @@ package config
 
 import "github.com/RacoonMediaServer/rms-packages/pkg/configuration"
 
+type Fuse struct {
+	Enabled bool
+	Limit   uint
+}
+
 type Configuration struct {
 	Directory string
 	Database  configuration.Database
+	Fuse      Fuse
 }
 
 var config Configuration

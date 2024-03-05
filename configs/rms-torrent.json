@@ -6,5 +6,9 @@
     "user": "rms",
     "password": "rms",
     "database": "rms"
+  },
+  "fuse": {
+    "enabled": false,
+    "limit": 5
   }
 }
