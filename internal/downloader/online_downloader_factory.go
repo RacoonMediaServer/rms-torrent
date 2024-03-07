@@ -105,18 +105,7 @@ func newOnlineDownloaderFactory(settings FactorySettings) (Factory, error) {
 }
 
 func (f onlineDownloaderFactory) New(t *model.Torrent) (Downloader, error) {
-	title, err := f.service.Add(mainRoute, t.Content)
-	if err != nil {
-		return nil, err
-	}
-
-	d := onlineDownloader{
-		id:    t.ID,
-		title: title,
-		dir:   f.settings.DataDirectory,
-	}
-
-	return &d, nil
+	return newOnlineDownloader(f.service, f.settings.DataDirectory, t.Content)
 }
 
 func (f onlineDownloaderFactory) Close() {

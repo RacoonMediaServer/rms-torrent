@@ -1,16 +1,24 @@
 package downloader
 
 import (
+	"github.com/RacoonMediaServer/distribyted/torrent"
 	"io/fs"
 	"path/filepath"
 )
 
 type onlineDownloader struct {
-	id    string
-	title string
-	dir   string
+	title   string
+	dir     string
+	hash    string
+	service *torrent.Service
 }
 
+func newOnlineDownloader(s *torrent.Service, dir string, content []byte) (Downloader, error) {
+	d := onlineDownloader{service: s, dir: dir}
+	var err error
+	d.title, d.hash, err = s.Add(mainRoute, content)
+	return &d, err
+}
 func (d *onlineDownloader) Start() {
 }
 
@@ -35,6 +43,7 @@ func (d *onlineDownloader) Title() string {
 }
 
 func (d *onlineDownloader) Stop() {
+	_ = d.service.RemoveFromHash(mainRoute, d.hash)
 }
 
 func (d *onlineDownloader) Bytes() uint64 {

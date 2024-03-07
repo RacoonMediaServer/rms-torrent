@@ -3,7 +3,7 @@ module github.com/RacoonMediaServer/rms-torrent
 go 1.18
 
 require (
-	github.com/RacoonMediaServer/distribyted v1.0.7
+	github.com/RacoonMediaServer/distribyted v1.0.8
 	github.com/RacoonMediaServer/rms-packages v1.11.9
 	github.com/anacrolix/missinggo/v2 v2.7.3
 	github.com/anacrolix/torrent v1.54.0
