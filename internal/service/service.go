@@ -6,6 +6,7 @@ import (
 	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	"github.com/RacoonMediaServer/rms-packages/pkg/misc"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
+	"github.com/RacoonMediaServer/rms-torrent/internal/config"
 	"github.com/RacoonMediaServer/rms-torrent/internal/downloads"
 	"github.com/RacoonMediaServer/rms-torrent/internal/model"
 	uuid "github.com/satori/go.uuid"
@@ -55,11 +56,13 @@ func (t *TorrentService) Initialize() error {
 		if tm.Description != "" {
 			description = fmt.Sprintf("%s (%s)", tm.Description, torrentTitle)
 		}
-		t.publish(ctx, &events.Notification{
-			Kind:      events.Notification_DownloadComplete,
-			TorrentID: &tm.ID,
-			ItemTitle: &description,
-		})
+		if !config.Config().Fuse.Enabled {
+			t.publish(ctx, &events.Notification{
+				Kind:      events.Notification_DownloadComplete,
+				TorrentID: &tm.ID,
+				ItemTitle: &description,
+			})
+		}
 	}
 	t.m.OnMalfunction = func(text string, code events.Malfunction_Code) {
 		t.publish(context.Background(), &events.Malfunction{
