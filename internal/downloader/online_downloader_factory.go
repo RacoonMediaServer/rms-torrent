@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	mainRoute   = "data"
 	cacheTTL    = 24 * time.Hour
 	readTimeout = 60
 	addTimeout  = 60
@@ -29,6 +30,15 @@ type onlineDownloaderFactory struct {
 	fileStore *torrent.FileItemStore
 	cli       *aTorrent.Client
 	service   *torrent.Service
+}
+
+type torrentLoader struct {
+}
+
+func (l torrentLoader) ListTorrents() (map[string][][]byte, error) {
+	return map[string][][]byte{
+		mainRoute: {},
+	}, nil
 }
 
 func newOnlineDownloaderFactory(settings FactorySettings) (Factory, error) {
@@ -71,7 +81,7 @@ func newOnlineDownloaderFactory(settings FactorySettings) (Factory, error) {
 
 	stats := torrent.NewStats()
 
-	loaders := []torrent.DatabaseLoader{} // TODO
+	loaders := []torrent.DatabaseLoader{&torrentLoader{}} // TODO
 	service := torrent.NewService(loaders, stats, cli, conf.AddTimeout, conf.ReadTimeout)
 
 	fss, err := service.Load()
@@ -95,7 +105,7 @@ func newOnlineDownloaderFactory(settings FactorySettings) (Factory, error) {
 }
 
 func (f onlineDownloaderFactory) New(t *model.Torrent) (Downloader, error) {
-	title, err := f.service.Add(t.ID, t.Content)
+	title, err := f.service.Add(mainRoute, t.Content)
 	if err != nil {
 		return nil, err
 	}

@@ -31,6 +31,8 @@ github.com/ProtonMail/go-crypto v1.0.0 h1:LRuvITjQWX+WIfr930YHG2HNfjR1uOfyf5vE0k
 github.com/ProtonMail/go-crypto v1.0.0/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
 github.com/RacoonMediaServer/distribyted v1.0.6 h1:04qJOqorszGvVDTba2tiGbf0dWfDVn7eMqLfx9dcNyQ=
 github.com/RacoonMediaServer/distribyted v1.0.6/go.mod h1:HYwtH5WpvNvitDZJ1Wo+huxkYaRuH0DvVcMBHjKejBQ=
+github.com/RacoonMediaServer/distribyted v1.0.7 h1:YQcdbwb1Rotq1OHud3HimxCzbPpgRnxmoyc2qxcwSfI=
+github.com/RacoonMediaServer/distribyted v1.0.7/go.mod h1:zrhVh9CKlPNsjJGT95Gk4mrYbajbxoWe/YJBLld0QXo=
 github.com/RacoonMediaServer/rms-packages v1.11.9 h1:MCSKuze5vKMwZfEfBT9AV1jIRzGRpxNglAMkuNzHEFE=
 github.com/RacoonMediaServer/rms-packages v1.11.9/go.mod h1:RiGcnXZXAcnk2LCVTGI31gqfYPBUoiSxjX7L7024aB0=
 github.com/RoaringBitmap/roaring v0.4.7/go.mod h1:8khRDP4HmeXns4xIj9oGrKSz7XTQiJx2zgh7AcNke4w=

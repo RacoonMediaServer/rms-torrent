@@ -15,7 +15,7 @@ func (d *onlineDownloader) Start() {
 }
 
 func (d *onlineDownloader) Files() []string {
-	torrentDir := filepath.Join(d.dir, d.id)
+	torrentDir := filepath.Join(d.dir, mainRoute, d.title)
 	var files []string
 	_ = filepath.WalkDir(torrentDir, func(path string, e fs.DirEntry, err error) error {
 		if err != nil {

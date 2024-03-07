@@ -9,6 +9,7 @@ import (
 func newFactory(settings *rms_torrent.TorrentSettings) (downloader.Factory, error) {
 	cfg := config.Config()
 	return downloader.NewFactory(downloader.FactorySettings{
+		Fuse:          cfg.Fuse,
 		DataDirectory: cfg.Directory,
 		UploadLimit:   settings.UploadLimit,
 		DownloadLimit: settings.DownloadLimit,
