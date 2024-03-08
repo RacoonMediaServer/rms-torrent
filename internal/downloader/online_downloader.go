@@ -31,7 +31,7 @@ func (d *onlineDownloader) Files() []string {
 		}
 		if !e.IsDir() {
 			relPath, _ := filepath.Rel(torrentDir, path)
-			files = append(files, relPath)
+			files = append(files, filepath.Join(d.title, relPath))
 		}
 		return nil
 	})
