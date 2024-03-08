@@ -8,7 +8,7 @@
     "database": "rms"
   },
   "fuse": {
-    "enabled": true,
+    "enabled": false,
     "cache-directory": "/media/cache",
     "limit": 5
   }
