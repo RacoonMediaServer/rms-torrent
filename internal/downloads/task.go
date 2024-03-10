@@ -86,6 +86,9 @@ func (t *task) IsHang() bool {
 }
 
 func (t *task) progress() float32 {
+	if t.d.RemainingBytes() == 0 && t.d.Bytes() == 0 {
+		return 100
+	}
 	completed := float64(t.d.Bytes())
 	left := float64(t.d.RemainingBytes())
 	return float32(completed/(completed+left)) * 100
