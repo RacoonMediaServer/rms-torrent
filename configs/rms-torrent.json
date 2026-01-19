@@ -1,15 +1,36 @@
 {
-  "directory": "/media/library/torrents",
-  "database": {
-    "host": "localhost",
-    "port": 5432,
-    "user": "rms",
-    "password": "rms",
-    "database": "rms"
+  "offline": {
+    "enabled": true,
+    "driver": "qbittorrent",
+    "qbittorrent": {
+      "url": "http://localhost:8080/",
+      "user": "admin",
+      "password": "",
+      "fifo": "/media/library/notifications.fifo",
+      "script": "/media/library/rms-notify.sh"
+    },
+    "builtin": {
+      "directory": "/media/library/torrents",
+      "database": {
+        "host": "localhost",
+        "port": 5432,
+        "user": "rms",
+        "password": "rms",
+        "database": "rms"
+      }
+    }
   },
-  "fuse": {
-    "enabled": false,
-    "cache-directory": "/media/cache",
-    "limit": 5
+  "online": {
+    "enabled": true,
+    "driver": "torrserver",
+    "torrserver": {
+      "url": "http://localhost:8090/"
+    },
+    "builtin": {
+      "directory": "/media/library/online",
+      "limit": 5,
+      "add-timeout": 60,
+      "read-timeout": 60
+    }
   }
 }
