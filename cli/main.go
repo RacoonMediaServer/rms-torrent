@@ -3,20 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
-	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
-	"go-micro.dev/v4"
-	"go-micro.dev/v4/client"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
+	"github.com/urfave/cli/v2"
+	"go-micro.dev/v4"
+	"go-micro.dev/v4/client"
 )
-import "github.com/urfave/cli/v2"
 
 func main() {
 	var command string
 	var item string
+	var serverName string
 	service := micro.NewService(
 		micro.Name("rms-torrent.client"),
 		micro.Flags(
@@ -32,11 +34,18 @@ func main() {
 				Required:    false,
 				Destination: &item,
 			},
+			&cli.StringFlag{
+				Name:        "serverName",
+				Usage:       "serverName - id of server",
+				Required:    false,
+				DefaultText: "rms-torrent",
+				Destination: &serverName,
+			},
 		),
 	)
 	service.Init()
 
-	client := rms_torrent.NewRmsTorrentService("rms-torrent", service.Client())
+	client := rms_torrent.NewRmsTorrentService(serverName, service.Client())
 
 	switch command {
 	case "download":
@@ -94,7 +103,7 @@ func download(cli rms_torrent.RmsTorrentService, file string) error {
 }
 
 func list(cli rms_torrent.RmsTorrentService) error {
-	result, err := cli.GetTorrents(context.Background(), &rms_torrent.GetTorrentsRequest{IncludeDoneTorrents: false})
+	result, err := cli.GetTorrents(context.Background(), &rms_torrent.GetTorrentsRequest{IncludeDoneTorrents: true})
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,5 @@
 {
   "offline": {
-    "enabled": true,
     "driver": "qbittorrent",
     "qbittorrent": {
       "url": "http://localhost:8080/",
@@ -10,24 +9,17 @@
       "script": "/media/library/rms-notify.sh"
     },
     "builtin": {
-      "directory": "/media/library/torrents",
-      "database": {
-        "host": "localhost",
-        "port": 5432,
-        "user": "rms",
-        "password": "rms",
-        "database": "rms"
-      }
+      "directory": "/media/library/torrents"
     }
   },
   "online": {
-    "enabled": true,
     "driver": "torrserver",
     "torrserver": {
-      "url": "http://localhost:8090/"
+      "url": "http://localhost:8090/",
+      "location": "/media/library/online"
     },
     "builtin": {
-      "directory": "/media/library/online",
+      "directory": "/home/enotpoloskin/Media",
       "limit": 5,
       "add-timeout": 60,
       "read-timeout": 60

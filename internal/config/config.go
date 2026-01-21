@@ -1,17 +1,28 @@
 package config
 
-import "github.com/RacoonMediaServer/rms-packages/pkg/configuration"
+import (
+	"github.com/RacoonMediaServer/rms-packages/pkg/configuration"
+	offline_builtin "github.com/RacoonMediaServer/rms-torrent/pkg/engine/offline/builtin"
+	"github.com/RacoonMediaServer/rms-torrent/pkg/engine/offline/qbittorrent"
+	online_builtin "github.com/RacoonMediaServer/rms-torrent/pkg/engine/online/builtin"
+	"github.com/RacoonMediaServer/rms-torrent/pkg/engine/online/torrserver"
+)
 
-type Fuse struct {
-	Enabled        bool
-	CacheDirectory string `json:"cache-directory"`
-	Limit          uint
+type OfflineEngine struct {
+	Driver      string
+	Qbittorrent qbittorrent.Config
+	Builtin     offline_builtin.Config
+}
+
+type OnlineEngine struct {
+	Driver     string
+	TorrServer torrserver.Config
+	Builtin    online_builtin.Config
 }
 
 type Configuration struct {
-	Directory string
-	Database  configuration.Database
-	Fuse      Fuse
+	Offline OfflineEngine
+	Online  OnlineEngine
 }
 
 var config Configuration

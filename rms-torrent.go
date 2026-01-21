@@ -1,7 +1,15 @@
 package main
 
 import (
+	"context"
+	"os"
+
+	"github.com/RacoonMediaServer/rms-packages/pkg/events"
+	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
+	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
+	tservice "github.com/RacoonMediaServer/rms-torrent/internal/service"
+	"github.com/RacoonMediaServer/rms-torrent/internal/tfactory"
 	"github.com/urfave/cli/v2"
 	micro "go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
@@ -15,9 +23,15 @@ const Version = "0.0.0"
 func main() {
 	logger.Infof("rms-torrent v%s", Version)
 	useDebug := false
+	onlineMode := os.Getenv("ONLINE_MODE") != ""
+
+	publicName := "rms-torrent"
+	if onlineMode {
+		publicName += "-online"
+	}
 
 	service := micro.NewService(
-		micro.Name("rms-torrent"),
+		micro.Name(publicName),
 		micro.Version(Version),
 		micro.Flags(
 			&cli.BoolFlag{
@@ -44,21 +58,19 @@ func main() {
 		_ = logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
-	// cfg := config.Config()
-	// database, err := db.Connect(cfg.Database)
-	// if err != nil {
-	// 	logger.Fatalf("Connect to database failed: %s", err)
-	// }
+	cfg := config.Config()
+	tEngine, err := tfactory.CreateEngine(onlineMode, cfg, func(event *events.Notification) error {
+		pub := pubsub.NewPublisher(service)
+		return pub.Publish(context.Background(), event)
+	})
+	if err != nil {
+		logger.Fatalf("Create torrent engine failed: %s", err)
+	}
+	tService := tservice.NewService(cfg, tEngine)
 
-	// tService := tservice.NewService(database, pubsub.NewPublisher(service))
-
-	// if err = tService.Initialize(); err != nil {
-	// 	logger.Fatalf("Initialize service failed: %s", err)
-	// }
-
-	// if err = rms_torrent.RegisterRmsTorrentHandler(service.Server(), tService); err != nil {
-	// 	logger.Fatalf("Cannot initialize service handler: %s", err)
-	// }
+	if err = rms_torrent.RegisterRmsTorrentHandler(service.Server(), tService); err != nil {
+		logger.Fatalf("Cannot initialize service handler: %s", err)
+	}
 
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)
