@@ -8,6 +8,7 @@ import (
 	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/internal/config"
+	"github.com/RacoonMediaServer/rms-torrent/internal/db"
 	tservice "github.com/RacoonMediaServer/rms-torrent/internal/service"
 	"github.com/RacoonMediaServer/rms-torrent/internal/tfactory"
 	"github.com/urfave/cli/v2"
@@ -24,6 +25,7 @@ func main() {
 	logger.Infof("rms-torrent v%s", Version)
 	useDebug := false
 	onlineMode := os.Getenv("ONLINE_MODE") != ""
+	var err error
 
 	publicName := "rms-torrent"
 	if onlineMode {
@@ -59,13 +61,23 @@ func main() {
 	}
 
 	cfg := config.Config()
-	tEngine, err := tfactory.CreateEngine(onlineMode, cfg, func(event *events.Notification) error {
+
+	var database *db.Database
+	if isDatabaseEnabled(cfg, onlineMode) {
+		database, err = db.Connect(cfg.Database)
+		if err != nil {
+			logger.Fatalf("Connect to database failed: %s", err)
+		}
+	}
+
+	tEngine, err := tfactory.CreateEngine(onlineMode, database, cfg, func(event *events.Notification) error {
 		pub := pubsub.NewPublisher(service)
 		return pub.Publish(context.Background(), event)
 	})
 	if err != nil {
 		logger.Fatalf("Create torrent engine failed: %s", err)
 	}
+
 	tService := tservice.NewService(cfg, tEngine)
 
 	if err = rms_torrent.RegisterRmsTorrentHandler(service.Server(), tService); err != nil {
@@ -75,4 +87,11 @@ func main() {
 	if err := service.Run(); err != nil {
 		logger.Fatal(err)
 	}
+}
+
+func isDatabaseEnabled(cfg config.Configuration, onlineMode bool) bool {
+	if onlineMode {
+		return cfg.Online.Driver != "builtin"
+	}
+	return cfg.Offline.Driver != "builtin"
 }

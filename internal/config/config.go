@@ -21,8 +21,9 @@ type OnlineEngine struct {
 }
 
 type Configuration struct {
-	Offline OfflineEngine
-	Online  OnlineEngine
+	Offline  OfflineEngine
+	Online   OnlineEngine
+	Database configuration.Database
 }
 
 var config Configuration

@@ -24,5 +24,12 @@
       "add-timeout": 60,
       "read-timeout": 60
     }
+  },
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "rms",
+    "password": "rms",
+    "database": "rms"
   }
 }

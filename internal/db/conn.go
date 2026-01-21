@@ -2,7 +2,6 @@ package db
 
 import (
 	"github.com/RacoonMediaServer/rms-packages/pkg/configuration"
-	"github.com/RacoonMediaServer/rms-torrent/internal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,7 +19,7 @@ func Connect(config configuration.Database) (*Database, error) {
 	if err = db.AutoMigrate(&torrentSettings{}); err != nil {
 		return nil, err
 	}
-	if err = db.AutoMigrate(&model.Torrent{}); err != nil {
+	if err = db.AutoMigrate(&torrentModel{}); err != nil {
 		return nil, err
 	}
 	return &Database{conn: db}, nil

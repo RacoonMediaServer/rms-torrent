@@ -2,6 +2,11 @@ package engine
 
 type VoidDatabase struct{}
 
+// Complete implements TorrentDatabase.
+func (v *VoidDatabase) Complete(id string) error {
+	return nil
+}
+
 // Add implements TorrentDatabase.
 func (v *VoidDatabase) Add(t TorrentRecord) error {
 	return nil
