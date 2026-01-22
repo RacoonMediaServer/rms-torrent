@@ -54,6 +54,10 @@ func (t *torrserverEngine) Add(ctx context.Context, category string, description
 		result.Files = append(result.Files, f.Path)
 	}
 
+	if len(result.Files) == 1 {
+		result.Location = filepath.Join(result.Location, result.Title)
+	}
+
 	return result, nil
 }
 
@@ -118,6 +122,12 @@ func fixCategory(category string) string {
 		return "tv"
 	case "rms_music":
 		return "music"
+	case "movie":
+		return "movie"
+	case "tv":
+		return "tv"
+	case "music":
+		return "music"
 	}
-	return category
+	return "other"
 }

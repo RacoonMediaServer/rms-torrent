@@ -91,7 +91,7 @@ func main() {
 
 func isDatabaseEnabled(cfg config.Configuration, onlineMode bool) bool {
 	if onlineMode {
-		return cfg.Online.Driver != "builtin"
+		return cfg.Online.Driver == "builtin"
 	}
-	return cfg.Offline.Driver != "builtin"
+	return cfg.Offline.Driver == "builtin"
 }

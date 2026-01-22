@@ -19,7 +19,7 @@
       "location": "/media/library/online"
     },
     "builtin": {
-      "directory": "/home/enotpoloskin/Media",
+      "directory": "/media/library/Media",
       "limit": 5,
       "add-timeout": 60,
       "read-timeout": 60

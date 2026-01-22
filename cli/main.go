@@ -38,12 +38,15 @@ func main() {
 				Name:        "serverName",
 				Usage:       "serverName - id of server",
 				Required:    false,
-				DefaultText: "rms-torrent",
 				Destination: &serverName,
 			},
 		),
 	)
 	service.Init()
+
+	if serverName == "" {
+		serverName = "rms-torrent"
+	}
 
 	client := rms_torrent.NewRmsTorrentService(serverName, service.Client())
 

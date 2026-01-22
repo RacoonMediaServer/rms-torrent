@@ -2,7 +2,8 @@ package engine
 
 type TorrentRecord struct {
 	TorrentDescription
-	Content []byte
+	Content  []byte
+	Complete bool
 }
 
 type TorrentDatabase interface {

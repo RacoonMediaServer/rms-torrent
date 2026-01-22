@@ -25,7 +25,8 @@ func (d *Database) Load() ([]engine.TorrentRecord, error) {
 				ID:    t.ID,
 				Title: t.Description,
 			},
-			Content: t.Content,
+			Content:  t.Content,
+			Complete: t.Complete,
 		}
 		result = append(result, record)
 	}
@@ -38,6 +39,7 @@ func (d *Database) Add(record engine.TorrentRecord) error {
 		ID:          record.ID,
 		Description: record.Title,
 		Content:     record.Content,
+		Complete:    record.Complete,
 	}
 	return d.conn.Create(&t).Error
 }

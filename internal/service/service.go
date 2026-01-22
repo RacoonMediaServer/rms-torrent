@@ -27,7 +27,7 @@ func (s *Service) Download(ctx context.Context, req *rms_torrent.DownloadRequest
 	resp.Files = added.Files
 	resp.Title = added.Title
 
-	logger.Infof("Torrent '%s' [%s, %d files] added", added.Title, added.ID, len(added.Files))
+	logger.Infof("Torrent '%s' [%s, %d files] added (loc: %s)", added.Title, added.ID, len(added.Files), added.Location)
 	return nil
 }
 
