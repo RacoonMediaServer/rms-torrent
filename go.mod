@@ -1,4 +1,4 @@
-module github.com/RacoonMediaServer/rms-torrent
+module github.com/RacoonMediaServer/rms-torrent/v4
 
 go 1.24.0
 

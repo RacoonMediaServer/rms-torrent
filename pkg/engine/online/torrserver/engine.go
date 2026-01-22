@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/engine"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/torrserver/client"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/torrserver/client/api"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/torrserver/client/helpers"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/torrserver/client"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/torrserver/client/api"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/torrserver/client/helpers"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 )

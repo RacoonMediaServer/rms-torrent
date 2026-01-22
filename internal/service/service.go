@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
-	"github.com/RacoonMediaServer/rms-torrent/internal/config"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/engine"
+	"github.com/RacoonMediaServer/rms-torrent/v4/internal/config"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

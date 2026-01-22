@@ -2,7 +2,7 @@ package torrserver
 
 import (
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/torrserver/client/helpers"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/torrserver/client/helpers"
 )
 
 func convertTorrentInfo(ti *helpers.TorrentInfo) *rms_torrent.TorrentInfo {

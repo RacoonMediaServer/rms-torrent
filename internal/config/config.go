@@ -2,10 +2,10 @@ package config
 
 import (
 	"github.com/RacoonMediaServer/rms-packages/pkg/configuration"
-	offline_builtin "github.com/RacoonMediaServer/rms-torrent/pkg/engine/offline/builtin"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/engine/offline/qbittorrent"
-	online_builtin "github.com/RacoonMediaServer/rms-torrent/pkg/engine/online/builtin"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/engine/online/torrserver"
+	offline_builtin "github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine/offline/builtin"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine/offline/qbittorrent"
+	online_builtin "github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine/online/builtin"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine/online/torrserver"
 )
 
 type OfflineEngine struct {

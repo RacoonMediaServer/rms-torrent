@@ -9,9 +9,9 @@ import (
 	"time"
 
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/engine"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/qbittorrent"
-	torrentutils "github.com/RacoonMediaServer/rms-torrent/pkg/torrent-utils"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/qbittorrent"
+	torrentutils "github.com/RacoonMediaServer/rms-torrent/v4/pkg/torrent-utils"
 	"go-micro.dev/v4/logger"
 )
 

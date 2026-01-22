@@ -5,7 +5,7 @@ import (
 	"time"
 
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
-	"github.com/RacoonMediaServer/rms-torrent/pkg/qbittorrent"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/qbittorrent"
 )
 
 func convertTorrentInfo(src *qbittorrent.TorrentInfo) *rms_torrent.TorrentInfo {

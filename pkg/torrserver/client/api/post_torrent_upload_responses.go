@@ -14,7 +14,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/RacoonMediaServer/rms-torrent/pkg/torrserver/models"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/torrserver/models"
 )
 
 // PostTorrentUploadReader is a Reader for the PostTorrentUpload structure.

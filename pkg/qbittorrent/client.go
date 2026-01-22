@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	torrentutils "github.com/RacoonMediaServer/rms-torrent/pkg/torrent-utils"
+	torrentutils "github.com/RacoonMediaServer/rms-torrent/v4/pkg/torrent-utils"
 )
 
 const apiBasePath = "/api/v2"

@@ -1,7 +1,7 @@
 package builtin
 
 import (
-	"github.com/RacoonMediaServer/rms-torrent/pkg/engine"
+	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine"
 )
 
 type databaseLoader struct {
