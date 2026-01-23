@@ -11,6 +11,7 @@ import (
 type task struct {
 	id     string
 	t      *torrent.Torrent
+	loc    string
 	status rms_torrent.Status
 
 	lastBytes     uint64
@@ -108,6 +109,7 @@ func (t *task) Info() *rms_torrent.TorrentInfo {
 		Progress:      t.progress(),
 		RemainingTime: int64(t.remainingTime),
 		SizeMB:        uint64(t.t.Info().Length / (1024. * 1024.)),
+		Location:      t.loc,
 	}
 }
 

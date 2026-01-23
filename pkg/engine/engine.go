@@ -14,7 +14,7 @@ type TorrentDescription struct {
 	Location string
 }
 
-type CompleteAction func(*events.Notification) error
+type EventAction func(events.Notification_Kind, *rms_torrent.TorrentInfo) error
 
 type TorrentEngine interface {
 	Add(ctx context.Context, category, description string, forceLocation *string, content []byte) (TorrentDescription, error)

@@ -34,6 +34,8 @@ github.com/RacoonMediaServer/distribyted v1.1.1 h1:VHWu6rfLPPenx+9M8Q30R4h4Yz+ub
 github.com/RacoonMediaServer/distribyted v1.1.1/go.mod h1:6GrDlxAz0n1vdvWMhgYUnXqeWuy5DFj1TbxZWW5D70E=
 github.com/RacoonMediaServer/rms-packages v1.16.6 h1:biWgBQ4RrINbEpdjQb4cIqvMwppO0V4N3Tq7sPb9jEQ=
 github.com/RacoonMediaServer/rms-packages v1.16.6/go.mod h1:RiGcnXZXAcnk2LCVTGI31gqfYPBUoiSxjX7L7024aB0=
+github.com/RacoonMediaServer/rms-packages v1.16.7 h1:e4PTkfF6jgy2NmZTd2M6lDu2UT77CXnFuQWcw5isEkI=
+github.com/RacoonMediaServer/rms-packages v1.16.7/go.mod h1:RiGcnXZXAcnk2LCVTGI31gqfYPBUoiSxjX7L7024aB0=
 github.com/RoaringBitmap/roaring v0.4.7/go.mod h1:8khRDP4HmeXns4xIj9oGrKSz7XTQiJx2zgh7AcNke4w=
 github.com/RoaringBitmap/roaring v0.4.17/go.mod h1:D3qVegWTmfCaX4Bl5CrBE9hfrSrrXIr8KVNvRsDi1NI=
 github.com/RoaringBitmap/roaring v0.4.23/go.mod h1:D0gp8kJQgE1A4LQ5wFLggQEyvDi06Mq5mKs52e1TwOo=

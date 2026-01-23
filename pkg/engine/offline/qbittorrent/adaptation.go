@@ -12,10 +12,11 @@ func convertTorrentInfo(src *qbittorrent.TorrentInfo) *rms_torrent.TorrentInfo {
 	return &rms_torrent.TorrentInfo{
 		Id:            src.Hash,
 		Title:         src.Name,
-		Progress:      src.Progress,
+		Progress:      src.Progress * 100.,
 		RemainingTime: int64(time.Second * time.Duration(src.Eta)),
 		SizeMB:        uint64(float32(src.Size) / (1024. * 1024.)),
 		Status:        convertTorrentStatus(src.State),
+		Location:      src.ContentPath,
 	}
 }
 

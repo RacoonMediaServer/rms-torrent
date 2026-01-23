@@ -12,9 +12,10 @@ type JsClient struct {
 }
 
 type TorrentInfo struct {
-	Title string
-	Hash  string
-	Size  uint64 `json:"torrent_size"`
+	Title    string
+	Hash     string
+	Category string
+	Size     uint64 `json:"torrent_size"`
 }
 
 func (c *JsClient) GetTorrents(ctx context.Context) ([]TorrentInfo, error) {

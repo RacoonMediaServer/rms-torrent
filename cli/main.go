@@ -101,7 +101,7 @@ func download(cli rms_torrent.RmsTorrentService, file string) error {
 		return err
 	}
 
-	fmt.Printf("(%s) Download files: %+v\n", resp.Id, resp.Files)
+	fmt.Printf("(%s) Download files: %+v, Location: %s\n", resp.Id, resp.Files, resp.Location)
 	return nil
 }
 
@@ -111,7 +111,7 @@ func list(cli rms_torrent.RmsTorrentService) error {
 		return err
 	}
 	for _, t := range result.Torrents {
-		fmt.Println(t.Id, t.Title, t.Status, t.Progress, time.Duration(t.RemainingTime), t.SizeMB)
+		fmt.Println(t.Id, t.Title, t.Status, t.Progress, time.Duration(t.RemainingTime), t.SizeMB, t.Location)
 	}
 	return nil
 }

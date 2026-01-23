@@ -12,8 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/RacoonMediaServer/rms-packages/pkg/events"
-	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine"
 	"go-micro.dev/v4/logger"
 	"golang.org/x/sys/unix"
 )
@@ -22,13 +20,22 @@ const fifoPollInterval = 100 * time.Millisecond
 
 type fifoWatcher struct {
 	f      *os.File
-	action engine.CompleteAction
+	action func(*notification) error
 	wg     sync.WaitGroup
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
-func (w *fifoWatcher) startFifoWatcher(fifoPath string, action engine.CompleteAction) error {
+type notification struct {
+	category string
+	tags     string
+	size     uint64
+	hash     string
+	title    string
+	location string
+}
+
+func (w *fifoWatcher) startFifoWatcher(fifoPath string, action func(*notification) error) error {
 	_, err := os.Stat(fifoPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -84,31 +91,41 @@ func (w *fifoWatcher) stop() error {
 	return nil
 }
 
-const notificationPattern = `%L|%G|%Z|%I|%N`
+const notificationPattern = `%L|%G|%Z|%I|%N|%R`
 
 func (w *fifoWatcher) handleNotification(text string) error {
 	logger.Infof("Got notification: %s", text)
-	items := strings.Split(text, "|")
-	if len(items) < 5 {
-		return errors.New("invalid notification format")
+
+	n, err := parseNotification(text)
+	if err != nil {
+		return fmt.Errorf("parse notification failed: %w", err)
 	}
 
-	event := events.Notification{
-		Sender:    "rms-torrent",
-		Kind:      events.Notification_DownloadComplete,
-		TorrentID: &items[3],
-		ItemTitle: &items[4],
-	}
-	event.MediaID = &items[1]
-
-	size, err := strconv.ParseUint(items[2], 10, 64)
-	if err == nil {
-		sz := uint32(float32(size) / 1024. * 1034.)
-		event.SizeMB = &sz
-	}
-
-	if err := w.action(&event); err != nil {
+	if err := w.action(n); err != nil {
 		return fmt.Errorf("complete action failed: %w", err)
 	}
 	return nil
+}
+
+func parseNotification(text string) (*notification, error) {
+	items := strings.Split(text, "|")
+	if len(items) < 6 {
+		return nil, errors.New("invalid notification format")
+	}
+
+	n := notification{
+		category: items[0],
+		tags:     items[1],
+		hash:     items[3],
+		title:    items[4],
+		location: items[5],
+	}
+
+	size, err := strconv.ParseUint(items[2], 10, 64)
+	if err == nil {
+		sz := uint64(float32(size) / 1024. * 1034.)
+		n.size = sz
+	}
+
+	return &n, nil
 }

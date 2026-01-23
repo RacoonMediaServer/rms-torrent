@@ -49,14 +49,7 @@ func (e *builtinEngine) checkTaskStatusUnsafe() {
 		}
 	} else {
 		if e.onComplete != nil {
-			notify := events.Notification{
-				Sender:    "rms-torrent",
-				Kind:      events.Notification_DownloadComplete,
-				TorrentID: &t.id,
-				ItemTitle: &t.t.Info().Name,
-			}
-
-			if err := e.onComplete(&notify); err != nil {
+			if err := e.onComplete(events.Notification_DownloadComplete, t.Info()); err != nil {
 				logger.Warnf("Complete handler failed: %s", err)
 			}
 			if err := e.db.Complete(t.id); err != nil {

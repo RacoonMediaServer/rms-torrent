@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	rms_torrent "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-torrent"
 	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine"
 	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/qbittorrent"
@@ -57,6 +58,7 @@ func (q *qbittorrentEngine) Add(ctx context.Context, category string, descriptio
 		info, err := cli.GetTorrent(ctx, hash)
 		if err == nil && len(info) != 0 && info[0].Name != "" {
 			title = info[0].Name
+			resp.Location = info[0].ContentPath
 			break
 		}
 		select {
@@ -154,7 +156,7 @@ func (q *qbittorrentEngine) UpPriority(ctx context.Context, id string) error {
 	return cli.IncPriority(ctx, id)
 }
 
-func NewTorrentEngine(config Config, completeAction engine.CompleteAction) (engine.TorrentEngine, error) {
+func NewTorrentEngine(config Config, eventAction engine.EventAction) (engine.TorrentEngine, error) {
 	cli := &qbittorrent.Client{URL: config.URL}
 	if err := cli.Login(config.User, config.Password); err != nil {
 		return nil, fmt.Errorf("login failed: %w", err)
@@ -176,9 +178,22 @@ func NewTorrentEngine(config Config, completeAction engine.CompleteAction) (engi
 	}
 
 	var w *fifoWatcher
-	if completeAction != nil {
+	if eventAction != nil {
 		w = &fifoWatcher{}
-		if err := w.startFifoWatcher(config.Fifo, completeAction); err != nil {
+
+		notifyHandler := func(n *notification) error {
+			ti := rms_torrent.TorrentInfo{
+				Id:       n.hash,
+				Title:    n.title,
+				Status:   rms_torrent.Status_Done,
+				Progress: 100,
+				SizeMB:   n.size,
+				Location: n.location,
+			}
+			return eventAction(events.Notification_DownloadComplete, &ti)
+		}
+
+		if err := w.startFifoWatcher(config.Fifo, notifyHandler); err != nil {
 			return nil, fmt.Errorf("start watching on fifo failed: %w", err)
 		}
 	}

@@ -47,14 +47,14 @@ func (t *torrserverEngine) Add(ctx context.Context, category string, description
 	result := engine.TorrentDescription{
 		ID:       resp.Payload.Hash,
 		Title:    resp.Payload.Title,
-		Location: filepath.Join(t.loc, category),
+		Location: filepath.Join(t.loc, category, resp.Payload.Title),
 	}
 
 	for _, f := range resp.Payload.FileStats {
 		result.Files = append(result.Files, f.Path)
 	}
 
-	if len(result.Files) == 1 {
+	if len(result.Files) == 1 && filepath.Dir(result.Files[0]) == "." {
 		result.Location = filepath.Join(result.Location, result.Title)
 	}
 
@@ -67,7 +67,7 @@ func (t *torrserverEngine) Get(ctx context.Context, id string) (*rms_torrent.Tor
 	if err != nil {
 		return nil, err
 	}
-	return convertTorrentInfo(resp), nil
+	return t.convertTorrentInfo(resp), nil
 }
 
 // List implements engine.TorrentEngine.
@@ -82,7 +82,7 @@ func (t *torrserverEngine) List(ctx context.Context, includeDone bool) ([]*rms_t
 	}
 	result := make([]*rms_torrent.TorrentInfo, 0, len(resp))
 	for _, ti := range resp {
-		result = append(result, convertTorrentInfo(&ti))
+		result = append(result, t.convertTorrentInfo(&ti))
 	}
 
 	return result, nil

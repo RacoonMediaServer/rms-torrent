@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/RacoonMediaServer/distribyted v1.1.1
-	github.com/RacoonMediaServer/rms-packages v1.16.6
+	github.com/RacoonMediaServer/rms-packages v1.16.7
 	github.com/anacrolix/missinggo/v2 v2.10.0
 	github.com/anacrolix/torrent v1.59.1
 	github.com/go-micro/plugins/v4/registry/etcd v1.2.0

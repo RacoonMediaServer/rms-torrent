@@ -45,7 +45,7 @@ func (e *bultinEngine) Add(ctx context.Context, category string, description str
 	result := engine.TorrentDescription{
 		ID:       hash,
 		Title:    title,
-		Location: filepath.Join(e.layout.contentDir, mainRoute),
+		Location: filepath.Join(e.layout.contentDir, mainRoute, title),
 	}
 
 	record := engine.TorrentRecord{
@@ -66,7 +66,7 @@ func (e *bultinEngine) Get(ctx context.Context, id string) (*rms_torrent.Torrent
 	if !ok {
 		return nil, errors.New("not found")
 	}
-	return convertTorrentInfo(t), nil
+	return e.convertTorrentInfo(t), nil
 }
 
 // List implements engine.TorrentEngine.
@@ -74,7 +74,7 @@ func (e *bultinEngine) List(ctx context.Context, includeDone bool) ([]*rms_torre
 	torrents := e.cli.Torrents()
 	result := make([]*rms_torrent.TorrentInfo, 0, len(torrents))
 	for _, t := range torrents {
-		result = append(result, convertTorrentInfo(t))
+		result = append(result, e.convertTorrentInfo(t))
 	}
 	return result, nil
 }

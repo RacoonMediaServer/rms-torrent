@@ -12,7 +12,7 @@ import (
 	"github.com/RacoonMediaServer/rms-torrent/v4/pkg/engine/online/torrserver"
 )
 
-func CreateEngine(onlineMode bool, dbase *db.Database, cfg config.Configuration, completeAction engine.CompleteAction) (result engine.TorrentEngine, err error) {
+func CreateEngine(onlineMode bool, dbase *db.Database, cfg config.Configuration, eventAction engine.EventAction) (result engine.TorrentEngine, err error) {
 	var tdb engine.TorrentDatabase = &engine.VoidDatabase{}
 	if dbase != nil {
 		tdb = dbase
@@ -20,15 +20,15 @@ func CreateEngine(onlineMode bool, dbase *db.Database, cfg config.Configuration,
 	if onlineMode {
 		return createOnlineEngine(cfg.Online, tdb)
 	}
-	return createOfflineEngine(cfg.Offline, tdb, completeAction)
+	return createOfflineEngine(cfg.Offline, tdb, eventAction)
 }
 
-func createOfflineEngine(cfg config.OfflineEngine, dbase engine.TorrentDatabase, completeAction engine.CompleteAction) (result engine.TorrentEngine, err error) {
+func createOfflineEngine(cfg config.OfflineEngine, dbase engine.TorrentDatabase, eventAction engine.EventAction) (result engine.TorrentEngine, err error) {
 	switch cfg.Driver {
 	case "qbittorrent":
-		result, err = qbittorrent.NewTorrentEngine(cfg.Qbittorrent, completeAction)
+		result, err = qbittorrent.NewTorrentEngine(cfg.Qbittorrent, eventAction)
 	case "builtin":
-		result, err = offline_builtin.NewTorrentEngine(cfg.Builtin, dbase, completeAction)
+		result, err = offline_builtin.NewTorrentEngine(cfg.Builtin, dbase, eventAction)
 	default:
 		err = fmt.Errorf("unknown driver: %s", cfg.Driver)
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
@@ -20,6 +21,8 @@ import (
 )
 
 const Version = "0.0.0"
+
+const publishTimeout = 10 * time.Second
 
 func main() {
 	logger.Infof("rms-torrent v%s", Version)
@@ -70,9 +73,9 @@ func main() {
 		}
 	}
 
-	tEngine, err := tfactory.CreateEngine(onlineMode, database, cfg, func(event *events.Notification) error {
-		pub := pubsub.NewPublisher(service)
-		return pub.Publish(context.Background(), event)
+	pub := pubsub.NewPublisher(service)
+	tEngine, err := tfactory.CreateEngine(onlineMode, database, cfg, func(kind events.Notification_Kind, t *rms_torrent.TorrentInfo) error {
+		return publishNotification(pub, kind, t)
 	})
 	if err != nil {
 		logger.Fatalf("Create torrent engine failed: %s", err)
@@ -94,4 +97,17 @@ func isDatabaseEnabled(cfg config.Configuration, onlineMode bool) bool {
 		return cfg.Online.Driver == "builtin"
 	}
 	return cfg.Offline.Driver == "builtin"
+}
+
+func publishNotification(pub micro.Event, kind events.Notification_Kind, t *rms_torrent.TorrentInfo) error {
+	n := events.Notification{
+		Sender:    "rms-torrent",
+		Kind:      events.Notification_DownloadComplete,
+		TorrentID: &t.Id,
+		ItemTitle: &t.Title,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), publishTimeout)
+	defer cancel()
+	return pub.Publish(ctx, &n)
 }

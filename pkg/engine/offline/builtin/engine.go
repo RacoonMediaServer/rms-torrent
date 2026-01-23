@@ -27,7 +27,7 @@ type builtinEngine struct {
 	cli        *torrent.Client
 	dir        string
 	db         engine.TorrentDatabase
-	onComplete engine.CompleteAction
+	onComplete engine.EventAction
 
 	mu    sync.RWMutex
 	tasks map[string]*task
@@ -120,7 +120,7 @@ func (e *builtinEngine) UpPriority(ctx context.Context, id string) error {
 	return e.upTorrentUnsafe(id)
 }
 
-func NewTorrentEngine(cfg Config, db engine.TorrentDatabase, onComplete engine.CompleteAction) (engine.TorrentEngine, error) {
+func NewTorrentEngine(cfg Config, db engine.TorrentDatabase, onComplete engine.EventAction) (engine.TorrentEngine, error) {
 	e := builtinEngine{
 		dir:        cfg.Directory,
 		tasks:      map[string]*task{},
@@ -202,9 +202,11 @@ func (e *builtinEngine) addTorrent(ctx context.Context, content []byte, complete
 	}
 
 	id := t.InfoHash().HexString()
+	loc = filepath.Join(loc, t.Name())
 	tTask := &task{
-		id: id,
-		t:  t,
+		id:  id,
+		t:   t,
+		loc: loc,
 	}
 	if complete {
 		tTask.status = rms_torrent.Status_Done
