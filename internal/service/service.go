@@ -46,7 +46,7 @@ func (s *Service) GetTorrentInfo(ctx context.Context, req *rms_torrent.GetTorren
 		return err
 	}
 
-	resp = result
+	*resp = *result
 	return nil
 }
 
